@@ -15,6 +15,7 @@
     body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
     canvas { touch-action: none; }
     .ltr-text { direction: ltr !important; unicode-bidi: isolate; }
+    
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
       20%, 60% { transform: translateX(-4px); }
@@ -22,6 +23,31 @@
     }
     .shake-animation {
       animation: shake 0.4s ease-in-out;
+    }
+
+    /* أنيميشن الوجوه الضاحكة والحزينة المتطايرة */
+    @keyframes floatUpFade {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(0.6) rotate(0deg);
+      }
+      50% {
+        opacity: 1;
+        transform: translate(var(--tx), var(--ty)) scale(1.3) rotate(var(--rot));
+      }
+      100% {
+        opacity: 0;
+        transform: translate(var(--tx2), var(--ty2)) scale(1.1) rotate(calc(var(--rot) * 1.8));
+      }
+    }
+
+    .floating-emoji {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      user-select: none;
+      font-size: 28px;
+      animation: floatUpFade 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
   </style>
 </head>
@@ -162,8 +188,8 @@
       <!-- Legend Footer -->
       <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap justify-between items-center text-xs text-slate-500 gap-2">
         <div class="flex items-center gap-4">
-          <span><i class="fa-solid fa-arrows-left-right text-indigo-500 ml-1"></i><strong>محور X:</strong> الأيام (1 - 31)</span>
-          <span><i class="fa-solid fa-arrows-up-down text-indigo-500 ml-1"></i><strong>محور Y:</strong> الشهور (1 - 12)</span>
+          <span><i class="fa-solid fa-arrows-left-right text-indigo-500 ml-1"></i><strong>محور x (اليوم):</strong> (1 - 31)</span>
+          <span><i class="fa-solid fa-arrows-up-down text-indigo-500 ml-1"></i><strong>محور y (الشهر):</strong> (1 - 12)</span>
         </div>
         <div class="font-semibold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 ltr-text">
           (X, Y)
@@ -255,6 +281,46 @@
         clearNameError();
       }
     });
+
+    // --- دالة توليد الوجوه الضاحكة أو الحزينة المتطايرة ---
+    function triggerFloatingEmojis(clientX, clientY, isSuccess) {
+      const happyEmojis = ['😃', '🥳', '🎉', '😊', '⭐', '✨', '👏', '🌟', '🥰'];
+      const sadEmojis = ['😢', '🙁', '💔', '🥺', '😞'];
+      const emojis = isSuccess ? happyEmojis : sadEmojis;
+      const count = isSuccess ? 22 : 12;
+
+      const rect = canvas.getBoundingClientRect();
+      const originX = (clientX !== undefined) ? clientX : (rect.left + rect.width / 2);
+      const originY = (clientY !== undefined) ? clientY : (rect.top + rect.height / 2);
+
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'floating-emoji';
+        el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * 80 + 30;
+        const tx = Math.cos(angle) * dist;
+        const ty = Math.sin(angle) * dist - (isSuccess ? 80 : 25);
+
+        const tx2 = tx + (Math.random() - 0.5) * 60;
+        const ty2 = ty - (isSuccess ? (Math.random() * 120 + 70) : -(Math.random() * 70 + 30));
+        const rot = `${(Math.random() - 0.5) * 90}deg`;
+
+        el.style.left = `${originX}px`;
+        el.style.top = `${originY}px`;
+        el.style.fontSize = `${Math.floor(Math.random() * 14 + 24)}px`;
+        el.style.setProperty('--tx', `${tx}px`);
+        el.style.setProperty('--ty', `${ty}px`);
+        el.style.setProperty('--tx2', `${tx2}px`);
+        el.style.setProperty('--ty2', `${ty2}px`);
+        el.style.setProperty('--rot', rot);
+        el.style.animationDuration = `${Math.random() * 0.4 + 1.3}s`;
+
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1800);
+      }
+    }
 
     function resizeCanvas() {
       const containerWidth = canvas.parentElement.clientWidth;
@@ -399,16 +465,16 @@
       ctx.textBaseline = "top";
       ctx.fillText("(0,0)", xZero - 5, yZero + 5);
 
-      // Axis Titles
+      // عناوين المحاور بالترتيب المطلوب
       ctx.font = "bold 13px 'Cairo', sans-serif";
       ctx.fillStyle = "#0f172a";
       ctx.textAlign = "center";
-      ctx.fillText("اليوم (محور X)", margin.left + plotWidth / 2, displayHeight - 15);
+      ctx.fillText("محور x (اليوم)", margin.left + plotWidth / 2, displayHeight - 15);
 
       ctx.save();
       ctx.translate(18, margin.top + plotHeight / 2);
       ctx.rotate(-Math.PI / 2);
-      ctx.fillText("الشهر (محور Y)", 0, 0);
+      ctx.fillText("محور y (الشهر)", 0, 0);
       ctx.restore();
 
       // --- خوارزمية تجميع النقاط ومنع تداخل الأسماء (Anti-Collision System) ---
@@ -650,7 +716,7 @@
         }
         addStudentPoint(x, y);
       } else if (currentMode === 'practice') {
-        checkPracticeAnswer(x, y);
+        checkPracticeAnswer(x, y, e.clientX, e.clientY);
       }
     });
 
@@ -663,18 +729,22 @@
       practiceFeedback.textContent = '';
     }
 
-    function checkPracticeAnswer(x, y) {
+    function checkPracticeAnswer(x, y, clientX, clientY) {
       if (x === targetPracticePoint.x && y === targetPracticePoint.y) {
         practiceFeedback.className = "text-xs text-center font-bold text-emerald-600 mb-2";
         practiceFeedback.innerHTML = `<i class="fa-solid fa-circle-check"></i> أحسنت! إجابة صحيحة <span class="ltr-text">\u200E(${x}, ${y})</span>`;
-        setTimeout(generateNewPracticeQuestion, 1500);
+        // إطلاق وجوه ضاحكة متطايرة
+        triggerFloatingEmojis(clientX, clientY, true);
+        setTimeout(generateNewPracticeQuestion, 1600);
       } else {
         practiceFeedback.className = "text-xs text-center font-bold text-red-500 mb-2";
         practiceFeedback.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> حاول مجدداً! قمت بنقر <span class="ltr-text">\u200E(${x}, ${y})</span>`;
+        // إطلاق وجوه حزينة متطايرة
+        triggerFloatingEmojis(clientX, clientY, false);
       }
     }
 
-    // --- نظام توليد ملف الـ PDF عالي الدقة (300 DPI Vector-Quality) ---
+    // --- نظام توليد ملف الـ PDF عالي الدقة (بدون عنوان ثانوي وبدون ترقيم صفحات) ---
     function generatePdfCanvas() {
       const pdfCanvas = document.createElement('canvas');
       const W = 2380; // A4 Landscape ratio (297mm x 210mm)
@@ -687,20 +757,15 @@
       pctx.fillStyle = '#ffffff';
       pctx.fillRect(0, 0, W, H);
 
-      // 1. عنوان الصفحة الرئيسي في الـ PDF
+      // 1. عنوان الصفحة الرئيسي فقط (لا حاجة لأي عنوان ثانوي)
       pctx.textAlign = 'center';
-      pctx.textBaseline = 'top';
-      pctx.font = "bold 46px 'Cairo', sans-serif";
+      pctx.textBaseline = 'middle';
+      pctx.font = "bold 48px 'Cairo', sans-serif";
       pctx.fillStyle = "#1e1b4b";
-      pctx.fillText("تواريخ الميلاد في هيئة محاور", W / 2, 45);
-
-      // العنوان الفرعي ودليل الرموز
-      pctx.font = "bold 22px 'Cairo', sans-serif";
-      pctx.fillStyle = "#475569";
-      pctx.fillText("محور X: يوم الميلاد (1 - 31)  |  محور Y: شهر الميلاد (1 - 12)  |  صيغة الإحداثيات القياسية: (X, Y)", W / 2, 110);
+      pctx.fillText("تواريخ الميلاد في هيئة محاور", W / 2, 70);
 
       // 2. إعدادات هيئة المحاور
-      const pMargin = { top: 180, right: 110, bottom: 130, left: 140 };
+      const pMargin = { top: 150, right: 110, bottom: 120, left: 140 };
       const plotW = W - pMargin.left - pMargin.right;
       const plotH = H - pMargin.top - pMargin.bottom;
       const stepX = plotW / maxX;
@@ -797,16 +862,16 @@
       pctx.textBaseline = "top";
       pctx.fillText("(0,0)", xZero - 10, yZero + 10);
 
-      // مسميات المحاور
+      // عناوين المحاور بالترتيب المطلوب
       pctx.font = "bold 26px 'Cairo', sans-serif";
       pctx.fillStyle = "#0f172a";
       pctx.textAlign = "center";
-      pctx.fillText("اليوم (محور X)", pMargin.left + plotW / 2, H - 48);
+      pctx.fillText("محور x (اليوم)", pMargin.left + plotW / 2, H - 48);
 
       pctx.save();
       pctx.translate(45, pMargin.top + plotH / 2);
       pctx.rotate(-Math.PI / 2);
-      pctx.fillText("الشهر (محور Y)", 0, 0);
+      pctx.fillText("محور y (الشهر)", 0, 0);
       pctx.restore();
 
       // 3. رسم نقاط الطلاب وتسمياتهم مع نظام منع التداخل
@@ -928,15 +993,6 @@
         pctx.font = "bold 19px 'Cairo', sans-serif";
         pctx.fillText(labelText, chosenBox.x + boxW / 2, chosenBox.y + boxH / 2 + 2);
       });
-
-      // 4. تذييل الصفحة في الـ PDF
-      pctx.font = "bold 18px 'Cairo', sans-serif";
-      pctx.fillStyle = "#64748b";
-      pctx.textAlign = "right";
-      pctx.fillText(`إجمالي الطلاب المسجلين: ${students.length}`, W - 110, H - 48);
-
-      pctx.textAlign = "left";
-      pctx.fillText("رياضيات تفاعلية - الصف السابع", 140, H - 48);
 
       return pdfCanvas;
     }
