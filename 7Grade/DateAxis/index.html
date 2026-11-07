@@ -16,6 +16,14 @@
     body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
     canvas { touch-action: none; }
     .ltr-text { direction: ltr !important; unicode-bidi: isolate; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-4px); }
+      40%, 80% { transform: translateX(4px); }
+    }
+    .shake-animation {
+      animation: shake 0.4s ease-in-out;
+    }
   </style>
 </head>
 <body class="min-h-screen text-slate-800 flex flex-col">
@@ -24,6 +32,9 @@
   <header class="bg-indigo-700 text-white shadow-md py-4 px-6">
     <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
       <div class="flex items-center gap-3">
+        <a href="../../" title="الرجوع إلى البوابة الرئيسية" class="bg-indigo-800 hover:bg-indigo-900 text-white p-2.5 rounded-xl transition flex items-center justify-center">
+          <i class="fa-solid fa-house"></i>
+        </a>
         <div class="bg-white text-indigo-700 p-2 rounded-lg font-bold text-xl shadow">
           <i class="fa-solid fa-chart-line"></i>
         </div>
@@ -53,15 +64,23 @@
     <div class="lg:col-span-1 space-y-6">
       
       <!-- Input Panel -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+      <div id="input-panel-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 transition duration-200">
         <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-pen-to-square text-indigo-600"></i> تسجيل طالب جديد
         </h2>
         
         <div class="space-y-4">
           <div>
-            <label for="student-name" class="block text-sm font-semibold text-slate-700 mb-1">اسم الطالب:</label>
-            <input type="text" id="student-name" placeholder="أدخل اسم الطالب هنا..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-sm">
+            <label for="student-name" class="block text-sm font-semibold text-slate-700 mb-1">
+              اسم الطالب: <span class="text-red-500 font-bold">*</span>
+            </label>
+            <input type="text" id="student-name" placeholder="أدخل اسم الطالب أولاً..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-sm">
+            
+            <!-- تنبيه الخطأ عند عدم إدخال الاسم -->
+            <div id="name-error-box" class="hidden mt-2 p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-semibold flex items-center gap-2">
+              <i class="fa-solid fa-circle-exclamation text-rose-500 text-sm"></i>
+              <span>يجب كتابة اسم الطالب أولاً قبل النقر على الهيئة!</span>
+            </div>
           </div>
 
           <div id="instruction-box" class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-800 flex items-start gap-2">
@@ -69,8 +88,8 @@
             <div>
               <strong>خطوات التعيين:</strong>
               <ol class="list-decimal list-inside mt-1 space-y-1 text-slate-600">
-                <li>اكتب اسمك في الخانة أعلاه.</li>
-                <li>انقر مباشرة على هيئة المحاور لتعين النقطة.</li>
+                <li>اكتب اسمك كاملاً في الخانة أعلاه أولاً.</li>
+                <li>انقر مباشرة على هيئة المحاور لتعيين النقطة.</li>
               </ol>
             </div>
           </div>
@@ -127,7 +146,7 @@
       <div class="flex justify-between items-center mb-2">
         <div>
           <h3 class="font-bold text-slate-800">مستوى الإحداثيات (الربع الأول)</h3>
-          <p class="text-xs text-slate-500">انقر لتعيين النقاط المباشرة</p>
+          <p class="text-xs text-slate-500">انقر لتعيين النقاط المباشرة (تمنع التداخل تلقائياً)</p>
         </div>
         <div class="flex items-center gap-4 text-xs">
           <div id="hover-coord-display" class="font-mono bg-slate-100 px-3 py-1 rounded-lg text-slate-700 font-bold border ltr-text">
@@ -184,6 +203,8 @@
     const canvas = document.getElementById('gridCanvas');
     const ctx = canvas.getContext('2d');
     const studentNameInput = document.getElementById('student-name');
+    const inputPanelCard = document.getElementById('input-panel-card');
+    const nameErrorBox = document.getElementById('name-error-box');
     const hoverCoordDisplay = document.getElementById('hover-coord-display');
     const tableBody = document.getElementById('students-table-body');
     const countBadge = document.getElementById('count-badge');
@@ -212,6 +233,28 @@
       }
       renderTable();
       drawGrid();
+    });
+
+    function showNameError() {
+      nameErrorBox.classList.remove('hidden');
+      studentNameInput.classList.remove('border-slate-300', 'focus:ring-indigo-500');
+      studentNameInput.classList.add('border-rose-500', 'ring-2', 'ring-rose-200', 'bg-rose-50/50');
+      inputPanelCard.classList.remove('shake-animation');
+      void inputPanelCard.offsetWidth; // trigger reflow
+      inputPanelCard.classList.add('shake-animation');
+      studentNameInput.focus();
+    }
+
+    function clearNameError() {
+      nameErrorBox.classList.add('hidden');
+      studentNameInput.classList.remove('border-rose-500', 'ring-2', 'ring-rose-200', 'bg-rose-50/50');
+      studentNameInput.classList.add('border-slate-300', 'focus:ring-indigo-500');
+    }
+
+    studentNameInput.addEventListener('input', () => {
+      if (studentNameInput.value.trim().length > 0) {
+        clearNameError();
+      }
     });
 
     function resizeCanvas() {
@@ -256,6 +299,20 @@
       y = Math.max(1, Math.min(maxY, y));
 
       return { x, y };
+    }
+
+    function roundRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
     }
 
     function drawGrid() {
@@ -355,34 +412,143 @@
       ctx.fillText("الشهر (محور Y)", 0, 0);
       ctx.restore();
 
-      // Render Student Points
+      // --- خوارزمية تجميع النقاط ومنع تداخل الأسماء (Anti-Collision System) ---
+      const pointGroups = {};
       students.forEach(s => {
-        const { px, py } = valToPos(s.x, s.y);
-        const isHighlighted = s.id === activeHighlightId;
+        const key = `${s.x},${s.y}`;
+        if (!pointGroups[key]) {
+          pointGroups[key] = { x: s.x, y: s.y, students: [] };
+        }
+        pointGroups[key].students.push(s);
+      });
 
-        if (isHighlighted) {
+      const placedBoxes = [];
+
+      function checkCollision(box, padding = 4) {
+        for (const b of placedBoxes) {
+          if (!(box.x + box.w + padding < b.x ||
+                box.x > b.x + b.w + padding ||
+                box.y + box.h + padding < b.y ||
+                box.y > b.y + b.h + padding)) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      Object.values(pointGroups).forEach(group => {
+        const { px, py } = valToPos(group.x, group.y);
+        const isAnyHighlighted = group.students.some(s => s.id === activeHighlightId);
+
+        // هالة التمييز عند تمرير الماوس
+        if (isAnyHighlighted) {
           ctx.beginPath();
-          ctx.arc(px, py, 12, 0, Math.PI * 2);
+          ctx.arc(px, py, 14, 0, Math.PI * 2);
           ctx.fillStyle = "rgba(79, 70, 229, 0.25)";
           ctx.fill();
         }
 
-        ctx.beginPath();
-        ctx.arc(px, py, isHighlighted ? 7 : 5, 0, Math.PI * 2);
-        ctx.fillStyle = s.color || "#4f46e5";
+        // رسم النقطة (دائرة مزدوجة إذا اشترك طالبان أو أكثر في نفس اليوم والشهر)
+        if (group.students.length > 1) {
+          ctx.beginPath();
+          ctx.arc(px, py, isAnyHighlighted ? 8 : 6.5, 0, Math.PI * 2);
+          ctx.fillStyle = group.students[0].color || "#4f46e5";
+          ctx.fill();
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(px, py, isAnyHighlighted ? 4 : 3, 0, Math.PI * 2);
+          ctx.fillStyle = group.students[1].color || "#ec4899";
+          ctx.fill();
+        } else {
+          const s = group.students[0];
+          ctx.beginPath();
+          ctx.arc(px, py, isAnyHighlighted ? 7 : 5, 0, Math.PI * 2);
+          ctx.fillStyle = s.color || "#4f46e5";
+          ctx.fill();
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        // تجهيز نص التسمية (دمج الأسماء إذا كانوا على نفس النقطة)
+        const names = group.students.map(s => s.name).join('، ');
+        const coordText = `\u200E(${group.x}, ${group.y})`;
+        const labelText = `${names} ${coordText}`;
+
+        ctx.font = `bold ${isAnyHighlighted ? '12px' : '11px'} 'Cairo', sans-serif`;
+        const textWidth = ctx.measureText(labelText).width;
+        const boxW = textWidth + 14;
+        const boxH = 22;
+
+        // أماكن مرشحة لوضع التسمية لتفادي التداخل مع النقاط والتسميات الأخرى
+        const candidates = [
+          { x: px - boxW / 2, y: py - boxH - 7 },        // فوق النقطة مباشرة
+          { x: px + 8, y: py - boxH - 5 },               // أعلى اليمين
+          { x: px - boxW - 8, y: py - boxH - 5 },        // أعلى اليسار
+          { x: px - boxW / 2, y: py + 8 },               // أسفل النقطة
+          { x: px + 8, y: py + 7 },                      // أسفل اليمين
+          { x: px - boxW - 8, y: py + 7 },               // أسفل اليسار
+          { x: px - boxW / 2, y: py - boxH - 28 },       // طبقة علوية أعلى
+          { x: px + 10, y: py - boxH - 28 },             // طبقة علوية يمين
+          { x: px - boxW - 10, y: py - boxH - 28 },      // طبقة علوية يسار
+          { x: px - boxW / 2, y: py + 28 },              // طبقة سفلية أدنى
+          { x: px - boxW / 2, y: py - boxH - 48 }        // طبقة ثالثة عليا
+        ];
+
+        let chosenBox = null;
+        for (const cand of candidates) {
+          const box = { x: cand.x, y: cand.y, w: boxW, h: boxH };
+          const inBounds = (
+            box.x >= margin.left - 10 &&
+            box.x + box.w <= displayWidth - margin.right + 20 &&
+            box.y >= margin.top - 15 &&
+            box.y + box.h <= displayHeight - margin.bottom + 15
+          );
+          if (inBounds && !checkCollision(box)) {
+            chosenBox = box;
+            break;
+          }
+        }
+
+        if (!chosenBox) {
+          chosenBox = { x: candidates[0].x, y: candidates[0].y, w: boxW, h: boxH };
+        }
+
+        placedBoxes.push(chosenBox);
+
+        // خط إرشادي منقط إذا كانت التسمية مبعدة عن النقطة لتفادي التداخل
+        const dist = Math.hypot((chosenBox.x + boxW / 2) - px, (chosenBox.y + boxH / 2) - py);
+        if (dist > 28) {
+          ctx.save();
+          ctx.strokeStyle = isAnyHighlighted ? "#6366f1" : "#94a3b8";
+          ctx.lineWidth = 1;
+          ctx.setLineDash([2, 2]);
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          const targetX = Math.max(chosenBox.x, Math.min(chosenBox.x + boxW, px));
+          const targetY = Math.max(chosenBox.y, Math.min(chosenBox.y + boxH, py));
+          ctx.lineTo(targetX, targetY);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // رسم كبسولة خلفية أنيقة تمنع تشويش خطوط الشبكة على النص
+        roundRect(ctx, chosenBox.x, chosenBox.y, chosenBox.w, chosenBox.h, 6);
+        ctx.fillStyle = isAnyHighlighted ? "rgba(238, 242, 255, 0.96)" : "rgba(255, 255, 255, 0.92)";
         ctx.fill();
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = isAnyHighlighted ? "#4f46e5" : "#cbd5e1";
+        ctx.lineWidth = isAnyHighlighted ? 1.6 : 1;
         ctx.stroke();
 
-        ctx.font = `bold ${isHighlighted ? '13px' : '11px'} 'Cairo', sans-serif`;
-        ctx.fillStyle = isHighlighted ? "#1e1b4b" : "#334155";
-        ctx.textAlign = "right";
-        ctx.textBaseline = "bottom";
-
-        const coordText = `\u200E(${s.x}, ${s.y})`;
-        const labelText = `${s.name} ${coordText}`;
-        ctx.fillText(labelText, px - 8, py - 4);
+        // رسم النص داخل الكبسولة
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = isAnyHighlighted ? "#1e1b4b" : "#334155";
+        ctx.font = `bold ${isAnyHighlighted ? '12px' : '11px'} 'Cairo', sans-serif`;
+        ctx.fillText(labelText, chosenBox.x + boxW / 2, chosenBox.y + boxH / 2 + 1);
       });
     }
 
@@ -433,7 +599,14 @@
     }
 
     function addStudentPoint(x, y) {
-      const name = studentNameInput.value.trim() || `طالب ${students.length + 1}`;
+      const name = studentNameInput.value.trim();
+      if (!name) {
+        showNameError();
+        return;
+      }
+
+      clearNameError();
+
       const newStudent = {
         id: Date.now(),
         name: name,
@@ -473,6 +646,11 @@
       const { x, y } = posToVal(px, py);
 
       if (currentMode === 'add') {
+        const name = studentNameInput.value.trim();
+        if (!name) {
+          showNameError();
+          return;
+        }
         addStudentPoint(x, y);
       } else if (currentMode === 'practice') {
         checkPracticeAnswer(x, y);
