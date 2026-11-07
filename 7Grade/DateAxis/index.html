@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تعيين نقاط تاريخ الميلاد على هيئة المحاور</title>
+  <title>تواريخ الميلاد في هيئة محاور</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- مكتبات تنزيل PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- مكتبة تنزيل PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
@@ -39,8 +38,8 @@
           <i class="fa-solid fa-chart-line"></i>
         </div>
         <div>
-          <h1 class="text-xl md:text-2xl font-bold">تعيين تاريخ الميلاد على هيئة المحاور (الربع الأول)</h1>
-          <p class="text-xs md:text-sm text-indigo-200">اكتب اسمك ثم انقر على موقع تاريخ ميلادك على الهيئة</p>
+          <h1 class="text-xl md:text-2xl font-bold">تواريخ الميلاد في هيئة محاور</h1>
+          <p class="text-xs md:text-sm text-indigo-200">اكتب اسمك ثم انقر على موقع تاريخ ميلادك على الهيئة (الربع الأول)</p>
         </div>
       </div>
       <div class="flex items-center gap-2 flex-wrap">
@@ -140,13 +139,13 @@
       </div>
     </div>
 
-    <!-- Canvas Export Area Container -->
-    <div id="export-area" class="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6 flex flex-col justify-between">
+    <!-- Canvas Area Container -->
+    <div class="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6 flex flex-col justify-between">
       
       <div class="flex justify-between items-center mb-2">
         <div>
           <h3 class="font-bold text-slate-800">مستوى الإحداثيات (الربع الأول)</h3>
-          <p class="text-xs text-slate-500">انقر لتعيين النقاط المباشرة (تمنع التداخل تلقائياً)</p>
+          <p class="text-xs text-slate-500">انقر لتعيين النقاط المباشرة</p>
         </div>
         <div class="flex items-center gap-4 text-xs">
           <div id="hover-coord-display" class="font-mono bg-slate-100 px-3 py-1 rounded-lg text-slate-700 font-bold border ltr-text">
@@ -483,19 +482,18 @@
         const boxW = textWidth + 14;
         const boxH = 22;
 
-        // أماكن مرشحة لوضع التسمية لتفادي التداخل مع النقاط والتسميات الأخرى
         const candidates = [
-          { x: px - boxW / 2, y: py - boxH - 7 },        // فوق النقطة مباشرة
-          { x: px + 8, y: py - boxH - 5 },               // أعلى اليمين
-          { x: px - boxW - 8, y: py - boxH - 5 },        // أعلى اليسار
-          { x: px - boxW / 2, y: py + 8 },               // أسفل النقطة
-          { x: px + 8, y: py + 7 },                      // أسفل اليمين
-          { x: px - boxW - 8, y: py + 7 },               // أسفل اليسار
-          { x: px - boxW / 2, y: py - boxH - 28 },       // طبقة علوية أعلى
-          { x: px + 10, y: py - boxH - 28 },             // طبقة علوية يمين
-          { x: px - boxW - 10, y: py - boxH - 28 },      // طبقة علوية يسار
-          { x: px - boxW / 2, y: py + 28 },              // طبقة سفلية أدنى
-          { x: px - boxW / 2, y: py - boxH - 48 }        // طبقة ثالثة عليا
+          { x: px - boxW / 2, y: py - boxH - 7 },
+          { x: px + 8, y: py - boxH - 5 },
+          { x: px - boxW - 8, y: py - boxH - 5 },
+          { x: px - boxW / 2, y: py + 8 },
+          { x: px + 8, y: py + 7 },
+          { x: px - boxW - 8, y: py + 7 },
+          { x: px - boxW / 2, y: py - boxH - 28 },
+          { x: px + 10, y: py - boxH - 28 },
+          { x: px - boxW - 10, y: py - boxH - 28 },
+          { x: px - boxW / 2, y: py + 28 },
+          { x: px - boxW / 2, y: py - boxH - 48 }
         ];
 
         let chosenBox = null;
@@ -519,7 +517,7 @@
 
         placedBoxes.push(chosenBox);
 
-        // خط إرشادي منقط إذا كانت التسمية مبعدة عن النقطة لتفادي التداخل
+        // خط إرشادي منقط إذا كانت التسمية مبعدة عن النقطة
         const dist = Math.hypot((chosenBox.x + boxW / 2) - px, (chosenBox.y + boxH / 2) - py);
         if (dist > 28) {
           ctx.save();
@@ -535,7 +533,7 @@
           ctx.restore();
         }
 
-        // رسم كبسولة خلفية أنيقة تمنع تشويش خطوط الشبكة على النص
+        // كبسولة بيضاء أنيقة
         roundRect(ctx, chosenBox.x, chosenBox.y, chosenBox.w, chosenBox.h, 6);
         ctx.fillStyle = isAnyHighlighted ? "rgba(238, 242, 255, 0.96)" : "rgba(255, 255, 255, 0.92)";
         ctx.fill();
@@ -543,7 +541,6 @@
         ctx.lineWidth = isAnyHighlighted ? 1.6 : 1;
         ctx.stroke();
 
-        // رسم النص داخل الكبسولة
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillStyle = isAnyHighlighted ? "#1e1b4b" : "#334155";
@@ -677,30 +674,298 @@
       }
     }
 
-    // PDF Download Logic
+    // --- نظام توليد ملف الـ PDF عالي الدقة (300 DPI Vector-Quality) ---
+    function generatePdfCanvas() {
+      const pdfCanvas = document.createElement('canvas');
+      const W = 2380; // A4 Landscape ratio (297mm x 210mm)
+      const H = 1684;
+      pdfCanvas.width = W;
+      pdfCanvas.height = H;
+      const pctx = pdfCanvas.getContext('2d');
+
+      // خلفية بيضاء نقية
+      pctx.fillStyle = '#ffffff';
+      pctx.fillRect(0, 0, W, H);
+
+      // 1. عنوان الصفحة الرئيسي في الـ PDF
+      pctx.textAlign = 'center';
+      pctx.textBaseline = 'top';
+      pctx.font = "bold 46px 'Cairo', sans-serif";
+      pctx.fillStyle = "#1e1b4b";
+      pctx.fillText("تواريخ الميلاد في هيئة محاور", W / 2, 45);
+
+      // العنوان الفرعي ودليل الرموز
+      pctx.font = "bold 22px 'Cairo', sans-serif";
+      pctx.fillStyle = "#475569";
+      pctx.fillText("محور X: يوم الميلاد (1 - 31)  |  محور Y: شهر الميلاد (1 - 12)  |  صيغة الإحداثيات القياسية: (X, Y)", W / 2, 110);
+
+      // 2. إعدادات هيئة المحاور
+      const pMargin = { top: 180, right: 110, bottom: 130, left: 140 };
+      const plotW = W - pMargin.left - pMargin.right;
+      const plotH = H - pMargin.top - pMargin.bottom;
+      const stepX = plotW / maxX;
+      const stepY = plotH / maxY;
+
+      function pValToPos(x, y) {
+        return {
+          px: pMargin.left + x * stepX,
+          py: H - pMargin.bottom - y * stepY
+        };
+      }
+
+      // خطوط الشبكة الداخلية
+      pctx.strokeStyle = "#e2e8f0";
+      pctx.lineWidth = 1.8;
+      for (let x = 1; x <= maxX; x++) {
+        const { px } = pValToPos(x, 0);
+        pctx.beginPath();
+        pctx.moveTo(px, pMargin.top);
+        pctx.lineTo(px, H - pMargin.bottom);
+        pctx.stroke();
+      }
+      for (let y = 1; y <= maxY; y++) {
+        const { py } = pValToPos(0, y);
+        pctx.beginPath();
+        pctx.moveTo(pMargin.left, py);
+        pctx.lineTo(W - pMargin.right, py);
+        pctx.stroke();
+      }
+
+      // المحاور الرئيسية
+      pctx.strokeStyle = "#0f172a";
+      pctx.lineWidth = 4.5;
+      const yZero = H - pMargin.bottom;
+      const xZero = pMargin.left;
+
+      // محور X
+      pctx.beginPath();
+      pctx.moveTo(xZero - 15, yZero);
+      pctx.lineTo(W - pMargin.right + 25, yZero);
+      pctx.stroke();
+
+      // محور Y
+      pctx.beginPath();
+      pctx.moveTo(xZero, yZero + 15);
+      pctx.lineTo(xZero, pMargin.top - 25);
+      pctx.stroke();
+
+      // سهم محور X
+      pctx.fillStyle = "#0f172a";
+      pctx.beginPath();
+      pctx.moveTo(W - pMargin.right + 35, yZero);
+      pctx.lineTo(W - pMargin.right + 18, yZero - 9);
+      pctx.lineTo(W - pMargin.right + 18, yZero + 9);
+      pctx.fill();
+
+      // سهم محور Y
+      pctx.beginPath();
+      pctx.moveTo(xZero, pMargin.top - 35);
+      pctx.lineTo(xZero - 9, pMargin.top - 18);
+      pctx.lineTo(xZero + 9, pMargin.top - 18);
+      pctx.fill();
+
+      // أرقام وترقيمات محور X (الأيام من 1 إلى 31)
+      pctx.font = "bold 20px 'Cairo', sans-serif";
+      pctx.fillStyle = "#334155";
+      pctx.textAlign = "center";
+      pctx.textBaseline = "top";
+      for (let x = 1; x <= maxX; x++) {
+        const { px } = pValToPos(x, 0);
+        pctx.beginPath();
+        pctx.moveTo(px, yZero);
+        pctx.lineTo(px, yZero + 8);
+        pctx.stroke();
+        pctx.fillText(x.toString(), px, yZero + 12);
+      }
+
+      // أرقام وترقيمات محور Y (الشهور من 1 إلى 12)
+      pctx.font = "bold 22px 'Cairo', sans-serif";
+      pctx.textAlign = "right";
+      pctx.textBaseline = "middle";
+      for (let y = 1; y <= maxY; y++) {
+        const { py } = pValToPos(0, y);
+        pctx.beginPath();
+        pctx.moveTo(xZero - 8, py);
+        pctx.lineTo(xZero, py);
+        pctx.stroke();
+        pctx.fillText(y.toString(), xZero - 14, py);
+      }
+
+      // نقطة الأصل (0,0)
+      pctx.font = "bold 20px 'Cairo', sans-serif";
+      pctx.textAlign = "right";
+      pctx.textBaseline = "top";
+      pctx.fillText("(0,0)", xZero - 10, yZero + 10);
+
+      // مسميات المحاور
+      pctx.font = "bold 26px 'Cairo', sans-serif";
+      pctx.fillStyle = "#0f172a";
+      pctx.textAlign = "center";
+      pctx.fillText("اليوم (محور X)", pMargin.left + plotW / 2, H - 48);
+
+      pctx.save();
+      pctx.translate(45, pMargin.top + plotH / 2);
+      pctx.rotate(-Math.PI / 2);
+      pctx.fillText("الشهر (محور Y)", 0, 0);
+      pctx.restore();
+
+      // 3. رسم نقاط الطلاب وتسمياتهم مع نظام منع التداخل
+      const pointGroups = {};
+      students.forEach(s => {
+        const key = `${s.x},${s.y}`;
+        if (!pointGroups[key]) pointGroups[key] = { x: s.x, y: s.y, students: [] };
+        pointGroups[key].students.push(s);
+      });
+
+      const placedBoxes = [];
+      function pCheckCollision(box, padding = 8) {
+        for (const b of placedBoxes) {
+          if (!(box.x + box.w + padding < b.x ||
+                box.x > b.x + b.w + padding ||
+                box.y + box.h + padding < b.y ||
+                box.y > b.y + b.h + padding)) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      Object.values(pointGroups).forEach(group => {
+        const { px, py } = pValToPos(group.x, group.y);
+
+        // رسم النقطة
+        if (group.students.length > 1) {
+          pctx.beginPath();
+          pctx.arc(px, py, 11, 0, Math.PI * 2);
+          pctx.fillStyle = group.students[0].color || "#4f46e5";
+          pctx.fill();
+          pctx.strokeStyle = "#ffffff";
+          pctx.lineWidth = 3;
+          pctx.stroke();
+
+          pctx.beginPath();
+          pctx.arc(px, py, 5, 0, Math.PI * 2);
+          pctx.fillStyle = group.students[1].color || "#ec4899";
+          pctx.fill();
+        } else {
+          pctx.beginPath();
+          pctx.arc(px, py, 9, 0, Math.PI * 2);
+          pctx.fillStyle = group.students[0].color || "#4f46e5";
+          pctx.fill();
+          pctx.strokeStyle = "#ffffff";
+          pctx.lineWidth = 2.5;
+          pctx.stroke();
+        }
+
+        // نص التسمية
+        const names = group.students.map(s => s.name).join('، ');
+        const coordText = `\u200E(${group.x}, ${group.y})`;
+        const labelText = `${names} ${coordText}`;
+
+        pctx.font = "bold 19px 'Cairo', sans-serif";
+        const textWidth = pctx.measureText(labelText).width;
+        const boxW = textWidth + 24;
+        const boxH = 38;
+
+        const candidates = [
+          { x: px - boxW / 2, y: py - boxH - 12 },
+          { x: px + 12, y: py - boxH - 8 },
+          { x: px - boxW - 12, y: py - boxH - 8 },
+          { x: px - boxW / 2, y: py + 12 },
+          { x: px + 12, y: py + 10 },
+          { x: px - boxW - 12, y: py + 10 },
+          { x: px - boxW / 2, y: py - boxH - 46 },
+          { x: px + 16, y: py - boxH - 46 },
+          { x: px - boxW - 16, y: py - boxH - 46 },
+          { x: px - boxW / 2, y: py + 46 }
+        ];
+
+        let chosenBox = null;
+        for (const cand of candidates) {
+          const box = { x: cand.x, y: cand.y, w: boxW, h: boxH };
+          const inBounds = (
+            box.x >= pMargin.left - 15 &&
+            box.x + box.w <= W - pMargin.right + 30 &&
+            box.y >= pMargin.top - 20 &&
+            box.y + box.h <= H - pMargin.bottom + 20
+          );
+          if (inBounds && !pCheckCollision(box)) {
+            chosenBox = box;
+            break;
+          }
+        }
+        if (!chosenBox) chosenBox = { x: candidates[0].x, y: candidates[0].y, w: boxW, h: boxH };
+        placedBoxes.push(chosenBox);
+
+        // خط إرشادي
+        const dist = Math.hypot((chosenBox.x + boxW / 2) - px, (chosenBox.y + boxH / 2) - py);
+        if (dist > 45) {
+          pctx.save();
+          pctx.strokeStyle = "#94a3b8";
+          pctx.lineWidth = 1.8;
+          pctx.setLineDash([4, 4]);
+          pctx.beginPath();
+          pctx.moveTo(px, py);
+          const targetX = Math.max(chosenBox.x, Math.min(chosenBox.x + boxW, px));
+          const targetY = Math.max(chosenBox.y, Math.min(chosenBox.y + boxH, py));
+          pctx.lineTo(targetX, targetY);
+          pctx.stroke();
+          pctx.restore();
+        }
+
+        // كبسولة بيضاء
+        roundRect(pctx, chosenBox.x, chosenBox.y, chosenBox.w, chosenBox.h, 10);
+        pctx.fillStyle = "rgba(255, 255, 255, 0.96)";
+        pctx.fill();
+        pctx.strokeStyle = "#cbd5e1";
+        pctx.lineWidth = 1.8;
+        pctx.stroke();
+
+        // نص الطالب
+        pctx.textAlign = "center";
+        pctx.textBaseline = "middle";
+        pctx.fillStyle = "#1e293b";
+        pctx.font = "bold 19px 'Cairo', sans-serif";
+        pctx.fillText(labelText, chosenBox.x + boxW / 2, chosenBox.y + boxH / 2 + 2);
+      });
+
+      // 4. تذييل الصفحة في الـ PDF
+      pctx.font = "bold 18px 'Cairo', sans-serif";
+      pctx.fillStyle = "#64748b";
+      pctx.textAlign = "right";
+      pctx.fillText(`إجمالي الطلاب المسجلين: ${students.length}`, W - 110, H - 48);
+
+      pctx.textAlign = "left";
+      pctx.fillText("رياضيات تفاعلية - الصف السابع", 140, H - 48);
+
+      return pdfCanvas;
+    }
+
+    // زر تنزيل الـ PDF
     downloadPdfBtn.addEventListener('click', () => {
       const { jsPDF } = window.jspdf;
-      const exportArea = document.getElementById('export-area');
-
-      downloadPdfBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التنزيل...';
+      downloadPdfBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري إعداد ملف PDF...';
       downloadPdfBtn.disabled = true;
 
-      html2canvas(exportArea, { scale: 2 }).then(canvasImage => {
-        const imgData = canvasImage.toDataURL('image/png');
-        const pdf = new jsPDF('l', 'mm', 'a4');
-        const imgWidth = 280;
-        const imgHeight = (canvasImage.height * imgWidth) / canvasImage.width;
+      setTimeout(() => {
+        try {
+          const exportCanvas = generatePdfCanvas();
+          const imgData = exportCanvas.toDataURL('image/png');
+          const pdf = new jsPDF('l', 'mm', 'a4');
+          
+          // مقاس A4 بالعرض: 297mm x 210mm
+          pdf.addImage(imgData, 'PNG', 0, 0, 297, 210);
+          pdf.save('تواريخ_الميلاد_في_هيئة_محاور.pdf');
 
-        pdf.addImage(imgData, 'PNG', 8, 10, imgWidth, imgHeight);
-        pdf.save('هيئة_المحاور_تواريخ_الميلاد.pdf');
-
-        downloadPdfBtn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> تنزيل PDF';
-        downloadPdfBtn.disabled = false;
-      }).catch(() => {
-        alert('حدث خطأ أثناء تحميل ملف PDF، يرجى المحاولة مرة أخرى.');
-        downloadPdfBtn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> تنزيل PDF';
-        downloadPdfBtn.disabled = false;
-      });
+          downloadPdfBtn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> تنزيل PDF';
+          downloadPdfBtn.disabled = false;
+        } catch (err) {
+          console.error(err);
+          alert('حدث خطأ أثناء إعداد ملف PDF. يرجى المحاولة مرة أخرى.');
+          downloadPdfBtn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> تنزيل PDF';
+          downloadPdfBtn.disabled = false;
+        }
+      }, 100);
     });
 
     modeAddBtn.addEventListener('click', () => {
