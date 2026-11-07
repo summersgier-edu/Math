@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تعيين نقاط تاريخ الميلاد على هيئة المحاور</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- مكتبات تنزيل PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
+    canvas { touch-action: none; }
+    .ltr-text { direction: ltr !important; unicode-bidi: isolate; }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-indigo-700 text-white shadow-md py-4 px-6">
+    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-white text-indigo-700 p-2 rounded-lg font-bold text-xl shadow">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div>
+          <h1 class="text-xl md:text-2xl font-bold">تعيين تاريخ الميلاد على هيئة المحاور (الربع الأول)</h1>
+          <p class="text-xs md:text-sm text-indigo-200">اكتب اسمك ثم انقر على موقع تاريخ ميلادك على الهيئة</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        <button id="download-pdf-btn" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-lg shadow transition flex items-center gap-2 text-sm">
+          <i class="fa-solid fa-file-pdf"></i> تنزيل PDF
+        </button>
+        <button id="mode-add-btn" class="px-4 py-2 bg-white text-indigo-700 font-bold rounded-lg shadow hover:bg-indigo-50 transition flex items-center gap-2 text-sm">
+          <i class="fa-solid fa-user-plus"></i> إضافة نقاط
+        </button>
+        <button id="mode-practice-btn" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-800 transition flex items-center gap-2 text-sm border border-indigo-400">
+          <i class="fa-solid fa-bullseye"></i> وضع التمرين
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="max-w-7xl mx-auto w-full p-4 md:p-6 flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6">
+    
+    <!-- Sidebar Controls -->
+    <div class="lg:col-span-1 space-y-6">
+      
+      <!-- Input Panel -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square text-indigo-600"></i> تسجيل طالب جديد
+        </h2>
+        
+        <div class="space-y-4">
+          <div>
+            <label for="student-name" class="block text-sm font-semibold text-slate-700 mb-1">اسم الطالب:</label>
+            <input type="text" id="student-name" placeholder="أدخل اسم الطالب هنا..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-sm">
+          </div>
+
+          <div id="instruction-box" class="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-xs text-indigo-800 flex items-start gap-2">
+            <i class="fa-solid fa-circle-info text-indigo-600 mt-0.5 text-base"></i>
+            <div>
+              <strong>خطوات التعيين:</strong>
+              <ol class="list-decimal list-inside mt-1 space-y-1 text-slate-600">
+                <li>اكتب اسمك في الخانة أعلاه.</li>
+                <li>انقر مباشرة على هيئة المحاور لتعين النقطة.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Practice Mode Card -->
+      <div id="practice-card" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-5 shadow-sm">
+        <h2 class="text-lg font-bold text-amber-900 mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-trophy text-amber-600"></i> تحدي الإحداثيات
+        </h2>
+        <p class="text-xs text-amber-800 mb-4">عين النقطة المطلوبة بالضغط على الشبكة:</p>
+        <div class="bg-white rounded-xl p-3 text-center border border-amber-200 mb-4">
+          <span class="text-xs text-slate-500 block mb-1">النقطة المستهدفة</span>
+          <span id="target-point-display" class="text-2xl font-extrabold text-amber-600 font-mono ltr-text block">(15, 8)</span>
+        </div>
+        <div id="practice-feedback" class="text-xs text-center font-bold min-h-[20px] mb-2"></div>
+        <button id="next-question-btn" class="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition shadow text-sm">
+          تحدي جديد <i class="fa-solid fa-arrow-left mr-1"></i>
+        </button>
+      </div>
+
+      <!-- Students Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col max-h-[420px]">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-users text-indigo-600"></i> قائمة الطلاب (<span id="count-badge">0</span>)
+          </h2>
+          <button id="clear-all-btn" class="text-xs text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-trash-can"></i> مسح الكل
+          </button>
+        </div>
+
+        <div class="overflow-y-auto flex-1 border border-slate-100 rounded-xl">
+          <table class="w-full text-right text-xs">
+            <thead class="bg-slate-50 text-slate-500 sticky top-0 border-b border-slate-200">
+              <tr>
+                <th class="p-2.5">الاسم</th>
+                <th class="p-2.5 text-center">اليوم (X)</th>
+                <th class="p-2.5 text-center">الشهر (Y)</th>
+                <th class="p-2.5 text-center">إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="students-table-body" class="divide-y divide-slate-100">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Canvas Export Area Container -->
+    <div id="export-area" class="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6 flex flex-col justify-between">
+      
+      <div class="flex justify-between items-center mb-2">
+        <div>
+          <h3 class="font-bold text-slate-800">مستوى الإحداثيات (الربع الأول)</h3>
+          <p class="text-xs text-slate-500">انقر لتعيين النقاط المباشرة</p>
+        </div>
+        <div class="flex items-center gap-4 text-xs">
+          <div id="hover-coord-display" class="font-mono bg-slate-100 px-3 py-1 rounded-lg text-slate-700 font-bold border ltr-text">
+            (X: --, Y: --)
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas Area -->
+      <div class="relative w-full overflow-x-auto flex justify-center items-center py-2">
+        <canvas id="gridCanvas" class="cursor-crosshair bg-slate-50 rounded-xl shadow-inner border border-slate-200"></canvas>
+      </div>
+
+      <!-- Legend Footer -->
+      <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap justify-between items-center text-xs text-slate-500 gap-2">
+        <div class="flex items-center gap-4">
+          <span><i class="fa-solid fa-arrows-left-right text-indigo-500 ml-1"></i><strong>محور X:</strong> الأيام (1 - 31)</span>
+          <span><i class="fa-solid fa-arrows-up-down text-indigo-500 ml-1"></i><strong>محور Y:</strong> الشهور (1 - 12)</span>
+        </div>
+        <div class="font-semibold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 ltr-text">
+          (X, Y)
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Firebase Script with Modern Modules -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove, child } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-database.js";
+
+    // Firebase Configurations
+    const firebaseConfig = {
+      apiKey: "AIzaSyD7-QrhabQnFybWmifMRlZDpHjMoIh1g-g",
+      authDomain: "gridapp-4fdef.firebaseapp.com",
+      databaseURL: "https://gridapp-4fdef-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "gridapp-4fdef",
+      storageBucket: "gridapp-4fdef.firebasestorage.app",
+      messagingSenderId: "190904246353",
+      appId: "1:190904246353:web:de23b1ac9bcf0c32e21870"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const studentsRef = ref(database, 'students');
+
+    let students = [];
+    let currentMode = 'add';
+    let targetPracticePoint = { x: 1, y: 1 };
+    let activeHighlightId = null;
+
+    const canvas = document.getElementById('gridCanvas');
+    const ctx = canvas.getContext('2d');
+    const studentNameInput = document.getElementById('student-name');
+    const hoverCoordDisplay = document.getElementById('hover-coord-display');
+    const tableBody = document.getElementById('students-table-body');
+    const countBadge = document.getElementById('count-badge');
+    const clearAllBtn = document.getElementById('clear-all-btn');
+
+    const modeAddBtn = document.getElementById('mode-add-btn');
+    const modePracticeBtn = document.getElementById('mode-practice-btn');
+    const downloadPdfBtn = document.getElementById('download-pdf-btn');
+    const practiceCard = document.getElementById('practice-card');
+    const targetPointDisplay = document.getElementById('target-point-display');
+    const practiceFeedback = document.getElementById('practice-feedback');
+    const nextQuestionBtn = document.getElementById('next-question-btn');
+
+    const margin = { top: 40, right: 40, bottom: 50, left: 60 };
+    const maxX = 31;
+    const maxY = 12;
+
+    // Real-Time Firebase Listener
+    onValue(studentsRef, (snapshot) => {
+      const data = snapshot.val();
+      students = [];
+      if (data) {
+        Object.keys(data).forEach(key => {
+          students.push({ firebaseKey: key, ...data[key] });
+        });
+      }
+      renderTable();
+      drawGrid();
+    });
+
+    function resizeCanvas() {
+      const containerWidth = canvas.parentElement.clientWidth;
+      const width = Math.min(containerWidth, 800);
+      const height = Math.min(width * 0.75, 550);
+      
+      canvas.width = width * window.devicePixelRatio;
+      canvas.height = height * window.devicePixelRatio;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      drawGrid();
+    }
+
+    function getGridParams() {
+      const displayWidth = parseFloat(canvas.style.width);
+      const displayHeight = parseFloat(canvas.style.height);
+      const plotWidth = displayWidth - margin.left - margin.right;
+      const plotHeight = displayHeight - margin.top - margin.bottom;
+
+      const stepX = plotWidth / maxX;
+      const stepY = plotHeight / maxY;
+
+      return { displayWidth, displayHeight, plotWidth, plotHeight, stepX, stepY };
+    }
+
+    function valToPos(x, y) {
+      const { displayHeight, stepX, stepY } = getGridParams();
+      const px = margin.left + x * stepX;
+      const py = displayHeight - margin.bottom - y * stepY;
+      return { px, py };
+    }
+
+    function posToVal(px, py) {
+      const { displayHeight, stepX, stepY } = getGridParams();
+      let x = Math.round((px - margin.left) / stepX);
+      let y = Math.round((displayHeight - margin.bottom - py) / stepY);
+
+      x = Math.max(1, Math.min(maxX, x));
+      y = Math.max(1, Math.min(maxY, y));
+
+      return { x, y };
+    }
+
+    function drawGrid() {
+      const { displayWidth, displayHeight, plotWidth, plotHeight } = getGridParams();
+
+      ctx.clearRect(0, 0, displayWidth, displayHeight);
+
+      // Grid Lines
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 1.2;
+
+      for (let x = 1; x <= maxX; x++) {
+        const { px } = valToPos(x, 0);
+        ctx.beginPath();
+        ctx.moveTo(px, margin.top);
+        ctx.lineTo(px, displayHeight - margin.bottom);
+        ctx.stroke();
+      }
+
+      for (let y = 1; y <= maxY; y++) {
+        const { py } = valToPos(0, y);
+        ctx.beginPath();
+        ctx.moveTo(margin.left, py);
+        ctx.lineTo(displayWidth - margin.right, py);
+        ctx.stroke();
+      }
+
+      // Main Axes
+      ctx.strokeStyle = "#1e293b";
+      ctx.lineWidth = 2.5;
+
+      const yZero = displayHeight - margin.bottom;
+      ctx.beginPath();
+      ctx.moveTo(margin.left - 10, yZero);
+      ctx.lineTo(displayWidth - margin.right + 15, yZero);
+      ctx.stroke();
+
+      const xZero = margin.left;
+      ctx.beginPath();
+      ctx.moveTo(xZero, yZero + 10);
+      ctx.lineTo(xZero, margin.top - 15);
+      ctx.stroke();
+
+      // Arrows
+      ctx.fillStyle = "#1e293b";
+      ctx.beginPath();
+      ctx.moveTo(displayWidth - margin.right + 20, yZero);
+      ctx.lineTo(displayWidth - margin.right + 10, yZero - 5);
+      ctx.lineTo(displayWidth - margin.right + 10, yZero + 5);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(xZero, margin.top - 20);
+      ctx.lineTo(xZero - 5, margin.top - 10);
+      ctx.lineTo(xZero + 5, margin.top - 10);
+      ctx.fill();
+
+      // Axis Ticks & Labels
+      ctx.font = "bold 11px 'Cairo', sans-serif";
+      ctx.fillStyle = "#475569";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+
+      for (let x = 1; x <= maxX; x++) {
+        const { px } = valToPos(x, 0);
+        ctx.beginPath();
+        ctx.moveTo(px, yZero);
+        ctx.lineTo(px, yZero + 5);
+        ctx.stroke();
+        ctx.fillText(x.toString(), px, yZero + 7);
+      }
+
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      for (let y = 1; y <= maxY; y++) {
+        const { py } = valToPos(0, y);
+        ctx.beginPath();
+        ctx.moveTo(xZero - 5, py);
+        ctx.lineTo(xZero, py);
+        ctx.stroke();
+        ctx.fillText(y.toString(), xZero - 8, py);
+      }
+
+      ctx.textAlign = "right";
+      ctx.textBaseline = "top";
+      ctx.fillText("(0,0)", xZero - 5, yZero + 5);
+
+      // Axis Titles
+      ctx.font = "bold 13px 'Cairo', sans-serif";
+      ctx.fillStyle = "#0f172a";
+      ctx.textAlign = "center";
+      ctx.fillText("اليوم (محور X)", margin.left + plotWidth / 2, displayHeight - 15);
+
+      ctx.save();
+      ctx.translate(18, margin.top + plotHeight / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("الشهر (محور Y)", 0, 0);
+      ctx.restore();
+
+      // Render Student Points
+      students.forEach(s => {
+        const { px, py } = valToPos(s.x, s.y);
+        const isHighlighted = s.id === activeHighlightId;
+
+        if (isHighlighted) {
+          ctx.beginPath();
+          ctx.arc(px, py, 12, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(79, 70, 229, 0.25)";
+          ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(px, py, isHighlighted ? 7 : 5, 0, Math.PI * 2);
+        ctx.fillStyle = s.color || "#4f46e5";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.font = `bold ${isHighlighted ? '13px' : '11px'} 'Cairo', sans-serif`;
+        ctx.fillStyle = isHighlighted ? "#1e1b4b" : "#334155";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "bottom";
+
+        const coordText = `\u200E(${s.x}, ${s.y})`;
+        const labelText = `${s.name} ${coordText}`;
+        ctx.fillText(labelText, px - 8, py - 4);
+      });
+    }
+
+    function renderTable() {
+      tableBody.innerHTML = '';
+      countBadge.textContent = students.length;
+
+      students.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition cursor-pointer";
+        if (s.id === activeHighlightId) {
+          tr.classList.add('bg-indigo-50');
+        }
+
+        tr.innerHTML = `
+          <td class="p-2.5 font-bold text-slate-700">${s.name}</td>
+          <td class="p-2.5 text-center font-mono text-indigo-600 font-semibold">${s.x}</td>
+          <td class="p-2.5 text-center font-mono text-indigo-600 font-semibold">${s.y}</td>
+          <td class="p-2.5 text-center">
+            <button data-key="${s.firebaseKey}" class="delete-btn text-slate-400 hover:text-red-500 transition px-1">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </td>
+        `;
+
+        tr.addEventListener('mouseenter', () => {
+          activeHighlightId = s.id;
+          drawGrid();
+        });
+
+        tr.addEventListener('mouseleave', () => {
+          activeHighlightId = null;
+          drawGrid();
+        });
+
+        tableBody.appendChild(tr);
+      });
+
+      // Bind dynamic delete buttons
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const key = e.currentTarget.getAttribute('data-key');
+          if (key) {
+            remove(child(studentsRef, key));
+          }
+        });
+      });
+    }
+
+    function addStudentPoint(x, y) {
+      const name = studentNameInput.value.trim() || `طالب ${students.length + 1}`;
+      const newStudent = {
+        id: Date.now(),
+        name: name,
+        x: x,
+        y: y,
+        color: getRandomColor()
+      };
+
+      // Save to Firebase Database
+      push(studentsRef, newStudent);
+      studentNameInput.value = '';
+    }
+
+    function getRandomColor() {
+      const colors = ['#4f46e5', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+
+      const { x, y } = posToVal(px, py);
+      hoverCoordDisplay.textContent = `\u200E(${x}, ${y})`;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      hoverCoordDisplay.textContent = `(X: --, Y: --)`;
+    });
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+
+      const { x, y } = posToVal(px, py);
+
+      if (currentMode === 'add') {
+        addStudentPoint(x, y);
+      } else if (currentMode === 'practice') {
+        checkPracticeAnswer(x, y);
+      }
+    });
+
+    function generateNewPracticeQuestion() {
+      targetPracticePoint = {
+        x: Math.floor(Math.random() * maxX) + 1,
+        y: Math.floor(Math.random() * maxY) + 1
+      };
+      targetPointDisplay.textContent = `\u200E(${targetPracticePoint.x}, ${targetPracticePoint.y})`;
+      practiceFeedback.textContent = '';
+    }
+
+    function checkPracticeAnswer(x, y) {
+      if (x === targetPracticePoint.x && y === targetPracticePoint.y) {
+        practiceFeedback.className = "text-xs text-center font-bold text-emerald-600 mb-2";
+        practiceFeedback.innerHTML = `<i class="fa-solid fa-circle-check"></i> أحسنت! إجابة صحيحة <span class="ltr-text">\u200E(${x}, ${y})</span>`;
+        setTimeout(generateNewPracticeQuestion, 1500);
+      } else {
+        practiceFeedback.className = "text-xs text-center font-bold text-red-500 mb-2";
+        practiceFeedback.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> حاول مجدداً! قمت بنقر <span class="ltr-text">\u200E(${x}, ${y})</span>`;
+      }
+    }
+
+    // PDF Download Logic
+    downloadPdfBtn.addEventListener('click', () => {
+      const { jsPDF } = window.jspdf;
+      const exportArea = document.getElementById('export-area');
+
+      downloadPdfBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التنزيل...';
+      downloadPdfBtn.disabled = true;
+
+      html2canvas(exportArea, { scale: 2 }).then(canvasImage => {
+        const imgData = canvasImage.toDataURL('image/png');
+        const pdf = new jsPDF('l', 'mm', 'a4');
+        const imgWidth = 280;
+        const imgHeight = (canvasImage.height * imgWidth) / canvasImage.width;
+
+        pdf.addImage(imgData, 'PNG', 8, 10, imgWidth, imgHeight);
+        pdf.save('هيئة_المحاور_تواريخ_الميلاد.pdf');
+
+        downloadPdfBtn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> تنزيل PDF';
+        downloadPdfBtn.disabled = false;
+      }).catch(() => {
+        alert('حدث خطأ أثناء تحميل ملف PDF، يرجى المحاولة مرة أخرى.');
+        downloadPdfBtn.innerHTML = '<i class="fa-solid fa-file-pdf"></i> تنزيل PDF';
+        downloadPdfBtn.disabled = false;
+      });
+    });
+
+    modeAddBtn.addEventListener('click', () => {
+      currentMode = 'add';
+      modeAddBtn.className = "px-4 py-2 bg-white text-indigo-700 font-bold rounded-lg shadow hover:bg-indigo-50 transition flex items-center gap-2 text-sm";
+      modePracticeBtn.className = "px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-800 transition flex items-center gap-2 text-sm border border-indigo-400";
+      practiceCard.classList.add('hidden');
+    });
+
+    modePracticeBtn.addEventListener('click', () => {
+      currentMode = 'practice';
+      modePracticeBtn.className = "px-4 py-2 bg-white text-indigo-700 font-bold rounded-lg shadow hover:bg-indigo-50 transition flex items-center gap-2 text-sm";
+      modeAddBtn.className = "px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-800 transition flex items-center gap-2 text-sm border border-indigo-400";
+      practiceCard.classList.remove('hidden');
+      generateNewPracticeQuestion();
+    });
+
+    nextQuestionBtn.addEventListener('click', generateNewPracticeQuestion);
+
+    clearAllBtn.addEventListener('click', () => {
+      if (confirm('هل أنت تأكد من رغبتك في مسح جميع النقاط؟')) {
+        remove(studentsRef);
+      }
+    });
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+  </script>
+</body>
+</html>
