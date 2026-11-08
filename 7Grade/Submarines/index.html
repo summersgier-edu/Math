@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حرب الغواصات: هيئة المحاور (نسخة جانبية)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;900&display=swap');
+        
+        * {
+            font-family: 'Tajawal', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .canvas-container {
+            position: relative;
+            box-shadow: 0 15deg 35px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(56, 189, 248, 0.2);
+            border: 2px solid rgba(56, 189, 248, 0.3);
+            border-radius: 1rem;
+            background-color: #030712;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #38bdf8;
+            border-radius: 3px;
+        }
+
+        .btn-action {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(56, 189, 248, 0.4);
+        }
+        .btn-action:active {
+            transform: translateY(0);
+        }
+
+        .muted-slash {
+            position: relative;
+        }
+        .muted-slash::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 15%;
+            width: 70%;
+            height: 3px;
+            background-color: #ef4444;
+            transform: translateY(-50%) rotate(-45deg);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="p-2 md:p-4 flex flex-col justify-between items-center">
+
+    <!-- Top Header & Toolbar -->
+    <header class="w-full max-w-6xl flex justify-between items-center bg-slate-800/80 backdrop-blur border border-slate-700/60 p-3 rounded-2xl mb-3 shadow-lg">
+        <div class="flex items-center gap-3">
+            <a href="../../" title="الرجوع إلى البوابة الرئيسية"
+               class="p-2.5 w-11 h-11 bg-slate-700/80 hover:bg-slate-700 rounded-xl border border-slate-600/60 flex items-center justify-center text-cyan-400 transition-all btn-action">
+                <i class="fa-solid fa-house text-lg"></i>
+            </a>
+            <div class="bg-cyan-500/20 p-2 rounded-xl border border-cyan-500/40">
+                <i class="fa-solid fa-ship text-cyan-400 text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                    حرب الغواصات: هيئة المحاور
+                </h1>
+                <p class="text-xs text-slate-400 hidden sm:block">اصطد 10 غواصات بدقة واكتشف الأرباع!</p>
+            </div>
+        </div>
+
+        <!-- Audio Controls & Info Buttons -->
+        <div class="flex items-center gap-2">
+            <!-- Music Control -->
+            <button id="btn-bgm" onclick="toggleBgm()" title="كتم/تشغيل الموسيقى"
+                    class="p-2.5 w-11 h-11 bg-slate-700/80 hover:bg-slate-700 rounded-xl border border-slate-600/60 flex items-center justify-center text-cyan-400 transition-all">
+                <i id="bgm-icon" class="fa-solid fa-music text-lg"></i>
+            </button>
+
+            <!-- Instructions -->
+            <button onclick="openHelpModal()" title="التعليمات"
+                    class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs md:text-sm font-bold flex items-center gap-1.5 shadow-md btn-action">
+                <i class="fa-solid fa-circle-question text-base"></i>
+                <span class="hidden sm:inline">التعليمات</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="w-full max-w-6xl grid grid-cols-4 gap-2 md:gap-4 mb-3">
+        <!-- Target Coordinates Display -->
+        <div class="bg-cyan-950/80 border border-cyan-500/50 p-2 md:p-3 rounded-xl text-center shadow-lg">
+            <span class="text-cyan-300 text-xs block font-bold">الغواصة المطلوبة</span>
+            <span id="stat-target-coords" class="text-lg md:text-xl font-black font-mono text-cyan-300">
+                ( X: -- , Y: -- )
+            </span>
+        </div>
+
+        <div class="bg-slate-800/60 border border-slate-700/50 p-2 md:p-3 rounded-xl text-center">
+            <span class="text-slate-400 text-xs block font-bold">الغواصات المتبقية</span>
+            <span id="subs-count" class="text-xl md:text-2xl font-black text-cyan-400">10 / 10</span>
+        </div>
+        <div class="bg-slate-800/60 border border-slate-700/50 p-2 md:p-3 rounded-xl text-center">
+            <span class="text-slate-400 text-xs block font-bold">الصواريخ المتبقية</span>
+            <span id="missiles-count" class="text-xl md:text-2xl font-black text-amber-400">12 / 12</span>
+        </div>
+        <div class="bg-slate-800/60 border border-slate-700/50 p-2 md:p-3 rounded-xl text-center">
+            <span class="text-slate-400 text-xs block font-bold">النقاط</span>
+            <span id="score-display" class="text-xl md:text-2xl font-black text-emerald-400">0</span>
+        </div>
+    </div>
+
+    <!-- Main Game Area (Grid + Controls) -->
+    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-4 items-start flex-1">
+        
+        <!-- Grid Canvas Container -->
+        <div class="lg:col-span-8 flex flex-col items-center w-full relative">
+            <div class="canvas-container w-full overflow-hidden flex justify-center items-center p-1 relative">
+                <canvas id="gridCanvas" class="cursor-crosshair w-full h-auto max-h-[60vh] object-contain rounded-lg"></canvas>
+            </div>
+            <p class="text-xs text-slate-400 mt-2 text-center">
+                <i class="fa-solid fa-hand-pointer text-cyan-400 ml-1"></i>
+                يمكنك النقر مباشرًة على شبكة هيئة المحاور لاختيار النقطة الإحداثية.
+            </p>
+        </div>
+
+        <!-- Sidebar / Action Panel -->
+        <div class="lg:col-span-4 w-full flex flex-col gap-3">
+
+            <!-- Controls Panel / Input Form -->
+            <div id="controls-wrapper" class="bg-slate-800/90 border border-slate-700 p-4 rounded-2xl shadow-xl flex flex-col gap-4">
+                <h2 class="text-base font-bold text-slate-200 border-b border-slate-700 pb-2 flex items-center justify-between">
+                    <span><i class="fa-solid fa-crosshairs text-red-400 ml-2"></i>إطلاق الصاروخ</span>
+                    <span id="target-coords-hint" class="text-xs text-cyan-400 font-mono bg-cyan-950/60 px-2 py-1 rounded border border-cyan-800/40">
+                        استمع للإحداثي...
+                    </span>
+                </h2>
+
+                <!-- X Coordinate Inputs -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-bold text-slate-300 flex justify-between">
+                        <span>محور <span class="text-cyan-400 font-bold">X</span> (الأفقي):</span>
+                        <span id="val-x-display" class="font-mono text-cyan-400 font-bold">0</span>
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <button onclick="stepCoord('x', -1)" class="w-10 h-10 bg-slate-700 hover:bg-slate-600 rounded-lg text-lg font-bold text-cyan-300 flex items-center justify-center border border-slate-600 btn-action">-</button>
+                        <input type="range" id="input-x" min="-10" max="10" value="0" step="1" oninput="updateCoordsFromInput()" 
+                               class="w-full accent-cyan-400 bg-slate-700 h-2 rounded-lg cursor-pointer">
+                        <button onclick="stepCoord('x', 1)" class="w-10 h-10 bg-slate-700 hover:bg-slate-600 rounded-lg text-lg font-bold text-cyan-300 flex items-center justify-center border border-slate-600 btn-action">+</button>
+                    </div>
+                </div>
+
+                <!-- Y Coordinate Inputs -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-bold text-slate-300 flex justify-between">
+                        <span>محور <span class="text-emerald-400 font-bold">Y</span> (العمودي):</span>
+                        <span id="val-y-display" class="font-mono text-emerald-400 font-bold">0</span>
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <button onclick="stepCoord('y', -1)" class="w-10 h-10 bg-slate-700 hover:bg-slate-600 rounded-lg text-lg font-bold text-emerald-300 flex items-center justify-center border border-slate-600 btn-action">-</button>
+                        <input type="range" id="input-y" min="-6" max="6" value="0" step="1" oninput="updateCoordsFromInput()" 
+                               class="w-full accent-emerald-400 bg-slate-700 h-2 rounded-lg cursor-pointer">
+                        <button onclick="stepCoord('y', 1)" class="w-10 h-10 bg-slate-700 hover:bg-slate-600 rounded-lg text-lg font-bold text-emerald-300 flex items-center justify-center border border-slate-600 btn-action">+</button>
+                    </div>
+                </div>
+
+                <!-- Selected Coordinate Badge -->
+                <div class="bg-slate-900/80 border border-slate-700/80 p-2.5 rounded-xl text-center">
+                    <span class="text-xs text-slate-400 block mb-1">النقطة المحددة حالياً:</span>
+                    <span id="selected-point-badge" class="font-mono text-xl font-black text-amber-300">
+                        ( 0 , 0 )
+                    </span>
+                </div>
+
+                <!-- Fire Button -->
+                <button onclick="fireMissile()" class="w-full py-3 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black text-lg rounded-xl shadow-lg shadow-red-900/30 flex items-center justify-center gap-2 btn-action">
+                    <i class="fa-solid fa-rocket text-xl"></i>
+                    <span>إطـــــلاق!</span>
+                </button>
+            </div>
+
+            <!-- Quadrant Quiz Sidebar Panel -->
+            <div id="quadrant-quiz-modal" class="hidden bg-gradient-to-br from-slate-900 to-indigo-950 border-2 border-amber-500/60 p-4 rounded-2xl shadow-2xl flex flex-col gap-3">
+                <div class="text-center">
+                    <span class="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs px-3 py-1 rounded-full font-bold inline-block mb-2">
+                        🎉 إنجاز مفاجئ! +100 نقطة
+                    </span>
+                    <h3 class="text-lg font-black text-white">في أي ربع تقع هذه الغواصة؟</h3>
+                    <p id="quiz-coords-display" class="font-mono text-cyan-300 text-sm mt-1 font-bold"></p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-2 mt-1">
+                    <button onclick="submitQuadrantGuess(1)" class="p-2.5 bg-orange-600/30 hover:bg-orange-600/50 border border-orange-500/50 text-orange-200 font-bold rounded-xl text-right flex items-center justify-between px-4 transition-all">
+                        <span>الربع الأول</span>
+                        <span class="text-xs opacity-70">(X+ , Y+)</span>
+                    </button>
+                    <button onclick="submitQuadrantGuess(2)" class="p-2.5 bg-orange-600/30 hover:bg-orange-600/50 border border-orange-500/50 text-orange-200 font-bold rounded-xl text-right flex items-center justify-between px-4 transition-all">
+                        <span>الربع الثاني</span>
+                        <span class="text-xs opacity-70">(X- , Y+)</span>
+                    </button>
+                    <button onclick="submitQuadrantGuess(3)" class="p-2.5 bg-orange-600/30 hover:bg-orange-600/50 border border-orange-500/50 text-orange-200 font-bold rounded-xl text-right flex items-center justify-between px-4 transition-all">
+                        <span>الربع الثالث</span>
+                        <span class="text-xs opacity-70">(X- , Y-)</span>
+                    </button>
+                    <button onclick="submitQuadrantGuess(4)" class="p-2.5 bg-orange-600/30 hover:bg-orange-600/50 border border-orange-500/50 text-orange-200 font-bold rounded-xl text-right flex items-center justify-between px-4 transition-all">
+                        <span>الربع الرابع</span>
+                        <span class="text-xs opacity-70">(X+ , Y-)</span>
+                    </button>
+                    <button onclick="submitQuadrantGuess(0)" class="p-2.5 bg-slate-700/60 hover:bg-slate-700 border border-slate-500/50 text-slate-200 font-bold rounded-xl text-center py-2 transition-all">
+                        📍 على أحد المحاور (ليس ربعاً)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Log / Activity History -->
+            <div class="bg-slate-800/60 border border-slate-700/50 p-3 rounded-2xl max-h-48 flex flex-col">
+                <span class="text-xs font-bold text-slate-400 mb-2 flex items-center gap-1">
+                    <i class="fa-solid fa-clock-rotate-left"></i> سجل المحاولات:
+                </span>
+                <div id="log-list" class="overflow-y-auto space-y-1.5 flex-1 pr-1 text-xs">
+                    <div class="text-slate-500 text-center py-2">لم يتم إطلاق أي صاروخ بعد.</div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 max-w-lg w-full p-6 rounded-2xl shadow-2xl flex flex-col gap-4">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 class="text-lg font-bold text-cyan-400 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info"></i> تعليمات اللعب
+                </h3>
+                <button onclick="closeHelpModal()" class="text-slate-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="text-sm text-slate-300 leading-relaxed space-y-2">
+                <p>1️⃣ اقرأ إحداثيات الغواصة المحددة في الشريط العلوي (مثال: X = -3 , Y = +4).</p>
+                <p>2️⃣ اختر النقطة بالماوس أو باستعمال الأزرار (تأكد من إشارة + و - على يسار الأرقام).</p>
+                <p>3️⃣ اضغط زر <strong>إطلاق</strong>. لديك 12 صاروخاً لاصطياد 10 غواصات.</p>
+                <p>4️⃣ عند إصابة الغواصة، حزر اسم الربع الذي تقع فيه لتحصل على 100 نقطة إضافية!</p>
+            </div>
+            <button onclick="closeHelpModal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl flex items-center justify-center gap-2">
+                حسناً، فهمت! 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- Final Results Modal -->
+    <div id="game-over-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gradient-to-b from-slate-800 to-slate-900 border-2 border-cyan-500/50 max-w-md w-full p-6 rounded-3xl shadow-2xl text-center flex flex-col gap-4">
+            <div id="result-icon-container" class="text-5xl my-2">🎉</div>
+            <h2 id="result-title" class="text-2xl font-black text-white">نتيجة الرائد البطل!</h2>
+            <p id="result-desc" class="text-slate-300 text-sm"></p>
+
+            <div class="bg-slate-950/70 border border-slate-800 p-4 rounded-2xl grid grid-cols-2 gap-3 text-right">
+                <div>
+                    <span class="text-xs text-slate-400 block">مجموع النقاط:</span>
+                    <span id="final-score" class="text-xl font-black text-emerald-400">0</span>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 block">الغواصات المدمرة:</span>
+                    <span id="final-destroyed" class="text-xl font-black text-cyan-400">0 / 10</span>
+                </div>
+            </div>
+
+            <button onclick="resetGame()" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black text-lg rounded-xl shadow-lg btn-action">
+                لعبة جديدة 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Engine JS -->
+    <script>
+        // --- Game State Variables ---
+        let submarines = [];
+        let targetsList = [];
+        let currentTargetIndex = 0;
+        let currentTargetSub = null;
+        let currentSubMissCount = 0;
+
+        let missilesLeft = 12;
+        let subsDestroyed = 0;
+        let score = 0;
+
+        let selectedX = 0;
+        let selectedY = 0;
+
+        let hitAttempts = [];
+        let currentHitSub = null;
+
+        // Audio state
+        let bgmEnabled = true;
+        let voiceEnabled = true;
+        let audioCtx = null;
+        let bgmInterval = null;
+        let bgmStep = 0;
+
+        // Canvas Setup
+        const canvas = document.getElementById('gridCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridCols = 20; // X: -10 to +10
+        const gridRows = 12; // Y: -6 to +6
+        let cellSize = 35;
+
+        // Initialization
+        window.onload = function() {
+            setupCanvas();
+            window.addEventListener('resize', setupCanvas);
+            canvas.addEventListener('click', handleCanvasClick);
+            document.body.addEventListener('click', () => {
+                initAudio();
+                if (bgmEnabled && !bgmInterval) startBgm();
+            }, { once: true });
+            resetGame();
+        };
+
+        function setupCanvas() {
+            const container = canvas.parentElement;
+            const containerWidth = container.clientWidth - 10;
+            cellSize = Math.floor(containerWidth / gridCols);
+            if (cellSize < 24) cellSize = 24;
+
+            canvas.width = gridCols * cellSize;
+            canvas.height = gridRows * cellSize;
+
+            drawGrid();
+        }
+
+        // --- Audio Synthesizer (Web Audio API) ---
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'hit') {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const noteOsc = audioCtx.createOscillator();
+                    const noteGain = audioCtx.createGain();
+                    noteOsc.type = 'triangle';
+                    noteOsc.frequency.setValueAtTime(freq, now + idx * 0.08);
+
+                    noteGain.gain.setValueAtTime(0, now + idx * 0.08);
+                    noteGain.gain.linearRampToValueAtTime(0.15, now + idx * 0.08 + 0.02);
+                    noteGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
+
+                    noteOsc.connect(noteGain);
+                    noteGain.connect(audioCtx.destination);
+                    noteOsc.start(now + idx * 0.08);
+                    noteOsc.stop(now + idx * 0.08 + 0.35);
+                });
+            } else if (type === 'miss') {
+                const failNotes = [220, 174.61]; // A3 -> F3
+                failNotes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.15);
+
+                    gain.gain.setValueAtTime(0, now + idx * 0.15);
+                    gain.gain.linearRampToValueAtTime(0.12, now + idx * 0.15 + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.15 + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start(now + idx * 0.15);
+                    osc.stop(now + idx * 0.15 + 0.28);
+                });
+            }
+        }
+
+        // --- Speech Synthesis ---
+        function speakText(text) {
+            if (!voiceEnabled || !('speechSynthesis' in window)) return;
+
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ar-SA';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+
+            const voices = window.speechSynthesis.getVoices();
+            const preferredVoice = voices.find(v => v.lang.includes('ar') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Maged') || v.name.includes('Tarik') || v.name.includes('Laila')));
+            if (preferredVoice) {
+                utterance.voice = preferredVoice;
+            }
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function speakCurrentTarget() {
+            if (!currentTargetSub) return;
+            const xStr = formatCoordNumber(currentTargetSub.x);
+            const yStr = formatCoordNumber(currentTargetSub.y);
+            speakText(`الغواصة المطلوبة في إكس ${xStr} وواي ${yStr}`);
+        }
+
+        function formatCoordNumber(val) {
+            if (val > 0) return `موجب ${val}`;
+            if (val < 0) return `سالب ${Math.abs(val)}`;
+            return "صفر";
+        }
+
+        function formatSignLeft(val) {
+            if (val > 0) return `+${val}`;
+            if (val < 0) return `-${Math.abs(val)}`;
+            return `0`;
+        }
+
+        // --- Toggle Buttons ---
+        function toggleBgm() {
+            bgmEnabled = !bgmEnabled;
+            const btn = document.getElementById('btn-bgm');
+            const icon = document.getElementById('bgm-icon');
+
+            if (bgmEnabled) {
+                btn.classList.remove('muted-slash');
+                icon.className = 'fa-solid fa-music text-lg';
+                startBgm();
+            } else {
+                btn.classList.add('muted-slash');
+                icon.className = 'fa-solid fa-music text-lg text-slate-500';
+                stopBgm();
+            }
+        }
+
+        // --- Grid Drawing Logic ---
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const originX = Math.round((gridCols / 2) * cellSize);
+            const originY = Math.round((gridRows / 2) * cellSize);
+
+            // 1. Grid Lines
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#1e293b';
+
+            for (let x = 0; x <= canvas.width; x += cellSize) {
+                ctx.beginPath();
+                ctx.moveTo(x + 0.5, 0);
+                ctx.lineTo(x + 0.5, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y <= canvas.height; y += cellSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y + 0.5);
+                ctx.lineTo(canvas.width, y + 0.5);
+                ctx.stroke();
+            }
+
+            // 2. Quadrant Names (25% opacity orange)
+            ctx.font = '900 22px Tajawal, sans-serif';
+            ctx.fillStyle = 'rgba(249, 115, 22, 0.25)';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            const q1Pos = gridToCanvas(4, 4);
+            ctx.fillText('الربع الأول', q1Pos.cx, q1Pos.cy);
+
+            const q2Pos = gridToCanvas(-4, 4);
+            ctx.fillText('الربع الثاني', q2Pos.cx, q2Pos.cy);
+
+            const q3Pos = gridToCanvas(-4, -4);
+            ctx.fillText('الربع الثالث', q3Pos.cx, q3Pos.cy);
+
+            const q4Pos = gridToCanvas(4, -4);
+            ctx.fillText('الربع الرابع', q4Pos.cx, q4Pos.cy);
+
+            // 3. Main X & Y Axes
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#38bdf8';
+
+            ctx.beginPath();
+            ctx.moveTo(0, originY + 0.5);
+            ctx.lineTo(canvas.width, originY + 0.5);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(originX + 0.5, 0);
+            ctx.lineTo(originX + 0.5, canvas.height);
+            ctx.stroke();
+
+            // 4. Numbers on Axes
+            ctx.font = 'bold 11px font-mono, sans-serif';
+            ctx.fillStyle = '#94a3b8';
+
+            for (let gx = -10; gx <= 10; gx++) {
+                if (gx === 0) continue;
+                const pos = gridToCanvas(gx, 0);
+                ctx.fillText(formatSignLeft(gx), pos.cx, originY + 16);
+            }
+
+            for (let gy = -6; gy <= 6; gy++) {
+                if (gy === 0) continue;
+                const pos = gridToCanvas(0, gy);
+                ctx.textAlign = 'right';
+                ctx.fillText(formatSignLeft(gy), originX - 6, pos.cy + 4);
+            }
+
+            // 5. Origin Point
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.arc(originX, originY, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 6. Draw Shot Attempts
+            hitAttempts.forEach(attempt => {
+                const pos = gridToCanvas(attempt.x, attempt.y);
+                ctx.font = '18px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                if (attempt.hit) {
+                    ctx.fillText('💥', pos.cx, pos.cy);
+                } else {
+                    ctx.fillText('💦', pos.cx, pos.cy);
+                }
+            });
+
+            // 7. Draw Revealed Submarines
+            submarines.forEach(sub => {
+                if (sub.revealed && !sub.destroyed) {
+                    const pos = gridToCanvas(sub.x, sub.y);
+                    ctx.fillStyle = '#a855f7';
+                    ctx.beginPath();
+                    ctx.arc(pos.cx, pos.cy, cellSize * 0.4, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.font = '16px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('💡', pos.cx, pos.cy);
+                }
+            });
+
+            // 8. Draw Selected Target Marker (Hollow Yellow Circle)
+            const selPos = gridToCanvas(selectedX, selectedY);
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#facc15';
+            ctx.beginPath();
+            ctx.arc(selPos.cx, selPos.cy, cellSize * 0.35, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        function gridToCanvas(gx, gy) {
+            const originX = Math.round((gridCols / 2) * cellSize);
+            const originY = Math.round((gridRows / 2) * cellSize);
+            return {
+                cx: originX + gx * cellSize,
+                cy: originY - gy * cellSize
+            };
+        }
+
+        function canvasToGrid(px, py) {
+            const originX = Math.round((gridCols / 2) * cellSize);
+            const originY = Math.round((gridRows / 2) * cellSize);
+            const gx = Math.round((px - originX) / cellSize);
+            const gy = Math.round((originY - py) / cellSize);
+            return {
+                x: Math.max(-10, Math.min(10, gx)),
+                y: Math.max(-6, Math.min(6, gy))
+            };
+        }
+
+        // --- Canvas Click Handling ---
+        function handleCanvasClick(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.clientX - rect.left;
+            const clientY = e.clientY - rect.top;
+
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            const px = clientX * scaleX;
+            const py = clientY * scaleY;
+
+            const coords = canvasToGrid(px, py);
+            setSelectedCoords(coords.x, coords.y);
+        }
+
+        // --- Step & Select Coordinates ---
+        function stepCoord(axis, delta) {
+            if (axis === 'x') {
+                const newX = Math.max(-10, Math.min(10, selectedX + delta));
+                setSelectedCoords(newX, selectedY);
+            } else {
+                const newY = Math.max(-6, Math.min(6, selectedY + delta));
+                setSelectedCoords(selectedX, newY);
+            }
+        }
+
+        function updateCoordsFromInput() {
+            const xVal = parseInt(document.getElementById('input-x').value);
+            const yVal = parseInt(document.getElementById('input-y').value);
+            setSelectedCoords(xVal, yVal);
+        }
+
+        function setSelectedCoords(x, y) {
+            selectedX = x;
+            selectedY = y;
+            document.getElementById('input-x').value = x;
+            document.getElementById('input-y').value = y;
+            document.getElementById('val-x-display').textContent = formatSignLeft(x);
+            document.getElementById('val-y-display').textContent = formatSignLeft(y);
+            document.getElementById('selected-point-badge').textContent = `( ${formatSignLeft(x)} , ${formatSignLeft(y)} )`;
+            drawGrid();
+        }
+
+        // --- Game Setup & Loop ---
+        function resetGame() {
+            submarines = [];
+            targetsList = [];
+            hitAttempts = [];
+            currentTargetIndex = 0;
+            currentSubMissCount = 0;
+            missilesLeft = 12;
+            subsDestroyed = 0;
+            score = 0;
+
+            document.getElementById('subs-count').textContent = `10 / 10`;
+            document.getElementById('missiles-count').textContent = `12 / 12`;
+            document.getElementById('score-display').textContent = `0`;
+            document.getElementById('log-list').innerHTML = `<div class="text-slate-500 text-center py-2">بدأت اللعبة! حدد إحداثيات الهدف واضغط إطلاق.</div>`;
+
+            document.getElementById('game-over-modal').classList.add('hidden');
+            document.getElementById('quadrant-quiz-modal').classList.add('hidden');
+            document.getElementById('controls-wrapper').classList.remove('hidden');
+
+            const occupied = new Set();
+            while (submarines.length < 10) {
+                const rx = Math.floor(Math.random() * 19) - 9;
+                const ry = Math.floor(Math.random() * 13) - 6;
+                const key = `${rx},${ry}`;
+
+                if (!occupied.has(key)) {
+                    occupied.add(key);
+                    const q = getQuadrant(rx, ry);
+                    submarines.push({
+                        id: submarines.length + 1,
+                        x: rx,
+                        y: ry,
+                        quadrant: q,
+                        destroyed: false,
+                        revealed: false
+                    });
+                }
+            }
+
+            targetsList = [...submarines];
+            targetsList.sort(() => Math.random() - 0.5);
+
+            pickNextTarget();
+        }
+
+        function getQuadrant(x, y) {
+            if (x === 0 || y === 0) return 0;
+            if (x > 0 && y > 0) return 1;
+            if (x < 0 && y > 0) return 2;
+            if (x < 0 && y < 0) return 3;
+            if (x > 0 && y < 0) return 4;
+            return 0;
+        }
+
+        function getQuadrantName(q) {
+            switch(q) {
+                case 1: return "الربع الأول";
+                case 2: return "الربع الثاني";
+                case 3: return "الربع الثالث";
+                case 4: return "الربع الرابع";
+                default: return "على أحد المحاور";
+            }
+        }
+
+        function pickNextTarget() {
+            if (currentTargetIndex >= targetsList.length || missilesLeft <= 0) {
+                endGame(subsDestroyed >= 10);
+                return;
+            }
+
+            currentTargetSub = targetsList[currentTargetIndex];
+            currentSubMissCount = 0;
+
+            const hint = `X: ${formatSignLeft(currentTargetSub.x)} , Y: ${formatSignLeft(currentTargetSub.y)}`;
+            document.getElementById('target-coords-hint').textContent = hint;
+
+            const coordsText = `( X: ${formatSignLeft(currentTargetSub.x)} , Y: ${formatSignLeft(currentTargetSub.y)} )`;
+            const statTargetEl = document.getElementById('stat-target-coords');
+            if (statTargetEl) {
+                statTargetEl.textContent = coordsText;
+            }
+
+            speakCurrentTarget();
+            drawGrid();
+        }
+
+        // --- Missile Launch ---
+        function fireMissile() {
+            if (missilesLeft <= 0 || !currentTargetSub) return;
+
+            missilesLeft--;
+            document.getElementById('missiles-count').textContent = `${missilesLeft} / 12`;
+
+            const isHit = (selectedX === currentTargetSub.x && selectedY === currentTargetSub.y);
+            hitAttempts.push({ x: selectedX, y: selectedY, hit: isHit });
+
+            if (isHit) {
+                playSound('hit');
+                currentTargetSub.destroyed = true;
+                subsDestroyed++;
+                score += 100;
+
+                document.getElementById('subs-count').textContent = `${10 - subsDestroyed} / 10`;
+                document.getElementById('score-display').textContent = score;
+
+                addLogEntry(`🎯 إصابة مؤكدة عند (${formatSignLeft(selectedX)}, ${formatSignLeft(selectedY)})!`, 'success');
+
+                currentHitSub = currentTargetSub;
+                showQuadrantQuiz();
+            } else {
+                playSound('miss');
+                currentSubMissCount++;
+
+                if (currentSubMissCount === 1) {
+                    addLogEntry(`❌ خطأ عند (${formatSignLeft(selectedX)}, ${formatSignLeft(selectedY)}). حاول مجدداً!`, 'error');
+                    speakText("أخطأت جرب ثانية");
+                    drawGrid();
+                } else {
+                    addLogEntry(`💥 أخطأت ثانية! مكان الغواصة كان (${formatSignLeft(currentTargetSub.x)}, ${formatSignLeft(currentTargetSub.y)})`, 'warning');
+                    speakText("أخطأت ثانية، انظر أين هو المكان الصحيح");
+                    
+                    currentTargetSub.revealed = true;
+                    drawGrid();
+
+                    setTimeout(() => {
+                        currentTargetIndex++;
+                        pickNextTarget();
+                    }, 2200);
+                }
+            }
+        }
+
+        function showQuadrantQuiz() {
+            document.getElementById('controls-wrapper').classList.add('hidden');
+            const quizModal = document.getElementById('quadrant-quiz-modal');
+            quizModal.classList.remove('hidden');
+            document.getElementById('quiz-coords-display').textContent = `النقطة الإحداثية: ( X: ${formatSignLeft(currentHitSub.x)} , Y: ${formatSignLeft(currentHitSub.y)} )`;
+
+            speakText("إصابة ممتازة! في أي ربع تقع هذه الغواصة؟");
+        }
+
+        function submitQuadrantGuess(guessedQuadrant) {
+            if (!currentHitSub) return;
+
+            const correctQuadrant = currentHitSub.quadrant;
+            const isCorrect = (guessedQuadrant === correctQuadrant);
+
+            const positiveFeedbacks = ["أحسنت!", "رائع!", "إجابة صحيحة!", "ممتاز!", "جميل!"];
+            const randomFeedback = positiveFeedbacks[Math.floor(Math.random() * positiveFeedbacks.length)];
+
+            if (isCorrect) {
+                score += 100;
+                document.getElementById('score-display').textContent = score;
+                playSound('hit');
+                speakText(`${randomFeedback} الإجابة هي ${getQuadrantName(correctQuadrant)}. حصلت على 100 نقطة إضافية`);
+                addLogEntry(`✨ إجابة صحيحة للربع: ${getQuadrantName(correctQuadrant)} (+100 نقطة)`, 'success');
+            } else {
+                speakText(`إجابة خاطئة. الغواصة تقع في ${getQuadrantName(correctQuadrant)}`);
+                addLogEntry(`⚠️ إجابة خاطئة للربع. الصواب: ${getQuadrantName(correctQuadrant)}`, 'warning');
+            }
+
+            document.getElementById('quadrant-quiz-modal').classList.add('hidden');
+            document.getElementById('controls-wrapper').classList.remove('hidden');
+
+            setTimeout(() => {
+                currentTargetIndex++;
+                pickNextTarget();
+            }, 2000);
+        }
+
+        function addLogEntry(msg, type) {
+            const list = document.getElementById('log-list');
+            if (list.children.length === 1 && list.children[0].classList.contains('text-slate-500')) {
+                list.innerHTML = '';
+            }
+            const item = document.createElement('div');
+            item.className = `p-1.5 rounded text-xs font-bold ${
+                type === 'success' ? 'bg-emerald-950/60 border border-emerald-800/40 text-emerald-300' :
+                type === 'error' ? 'bg-red-950/60 border border-red-800/40 text-red-300' :
+                'bg-amber-950/60 border border-amber-800/40 text-amber-300'
+            }`;
+            item.textContent = msg;
+            list.insertBefore(item, list.firstChild);
+        }
+
+        function endGame(won) {
+            const modal = document.getElementById('game-over-modal');
+            const title = document.getElementById('result-title');
+            const desc = document.getElementById('result-desc');
+            const icon = document.getElementById('result-icon-container');
+
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('final-destroyed').textContent = `${subsDestroyed} / 10`;
+
+            if (won || subsDestroyed >= 10) {
+                icon.textContent = '🏆';
+                title.textContent = 'انتصار باهر يا قائد!';
+                desc.textContent = 'لقد نجحت في تدمير جميع الغواصات وتحديد مواقعها وإحداثياتها بدقة!';
+                speakText("مبروك! لقد أنجزت المهمة بنجاح ودمرت الغواصات!");
+            } else {
+                icon.textContent = '⚓';
+                title.textContent = 'انتهت الصواريخ!';
+                desc.textContent = 'لقد نفدت صواريخك قبل تدمير كامل الغواصات. حاول مرة أخرى لتحقيق النصر!';
+                speakText("انتهت الصواريخ، حظاً موفقاً في المحاولة القادمة");
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        // --- Modals Handlers ---
+        function openHelpModal() {
+            document.getElementById('help-modal').classList.remove('hidden');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('help-modal').classList.add('hidden');
+        }
+
+        // --- Simple Background Music Loop ---
+        function startBgm() {
+            if (!bgmEnabled || !audioCtx) return;
+
+            const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00];
+            bgmInterval = setInterval(() => {
+                if (!bgmEnabled || !audioCtx) return;
+                try {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(notes[bgmStep % notes.length], audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.45);
+                    bgmStep++;
+                } catch(e) {}
+            }, 600);
+        }
+
+        function stopBgm() {
+            if (bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+        }
+    </script>
+</body>
+</html>
