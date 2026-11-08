@@ -498,11 +498,13 @@
                 
                 // X axis numbers
                 const xp = originX + (i * stepX);
+                ctx.direction = "ltr";
                 ctx.fillText(i > 0 ? `+${i}` : i, xp, originY + 22);
 
                 // Y axis numbers
                 const yp = originY - (i * stepY);
                 ctx.textAlign = 'right';
+                ctx.direction = "ltr";
                 ctx.fillText(i > 0 ? `+${i}` : i, originX - 10, yp);
                 ctx.textAlign = 'center';
             }
