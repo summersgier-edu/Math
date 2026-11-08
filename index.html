@@ -1,97 +1,152 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>بوابة تطبيقات الرياضيات التفاعلية</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
-  </style>
-</head>
-<body class="min-h-screen flex flex-col text-slate-800">
-
-  <!-- Header -->
-  <header class="bg-indigo-700 text-white shadow-md py-6 px-6">
-    <div class="max-w-6xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="bg-white text-indigo-700 p-3 rounded-2xl font-bold text-2xl shadow">
-          <i class="fa-solid fa-shapes"></i>
-        </div>
-        <div>
-          <h1 class="text-2xl md:text-3xl font-extrabold">بوابة الرياضيات التفاعلية</h1>
-          <p class="text-indigo-200 text-sm mt-1">تطبيقات وأنشطة رياضية تفاعلية لجميع الصفوف</p>
-        </div>
-      </div>
-      <span class="bg-indigo-800 text-indigo-200 text-xs px-3 py-1.5 rounded-full border border-indigo-600 font-semibold hidden sm:inline-block">
-        العام الدراسي 2026-2027
-      </span>
-    </div>
-  </header>
-
-  <!-- Main Content -->
-  <main class="max-w-6xl mx-auto w-full p-6 flex-1">
-
-    <!-- Grade Section -->
-    <div class="mb-10">
-      <div class="flex items-center gap-3 mb-6 border-b border-slate-200 pb-3">
-        <span class="bg-indigo-100 text-indigo-700 w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg">7</span>
-        <h2 class="text-xl font-bold text-slate-800">الصف السابع (Grade 7)</h2>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة الرياضيات التعليمية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap');
         
-        <!-- App Card: DateAxis -->
-        <a href="./7Grade/DateAxis/" class="group block bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-500 transition overflow-hidden">
-          <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 p-5 text-white flex justify-between items-start">
-            <div>
-              <span class="bg-white/20 text-white text-xs px-2.5 py-1 rounded-full font-semibold inline-block mb-2">هندسة وتحليل</span>
-              <h3 class="text-lg font-bold">تواريخ الميلاد في هيئة محاور</h3>
-            </div>
-            <i class="fa-solid fa-chart-line text-2xl text-indigo-200 group-hover:scale-110 transition"></i>
-          </div>
-          <div class="p-5">
-            <p class="text-slate-600 text-sm leading-relaxed mb-4">
-              نشاط تفاعلي جماعي لتعيين النقاط في الربع الأول باستخدام أيام وشهور الميلاد، مع مزامنة فورية ونمط تدريب.
-            </p>
-            <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs font-semibold text-indigo-600 group-hover:text-indigo-700">
-              <span>فتح النشاط التفاعلي</span>
-              <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition"></i>
-            </div>
-          </div>
-        </a>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
 
-        <!-- App Card: Submarines Battle -->
-        <a href="./7Grade/Submarines/" class="group block bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-cyan-500 transition overflow-hidden">
-          <div class="bg-gradient-to-r from-cyan-600 to-blue-700 p-5 text-white flex justify-between items-start">
-            <div>
-              <span class="bg-white/20 text-white text-xs px-2.5 py-1 rounded-full font-semibold inline-block mb-2">لعبة تفاعلية</span>
-              <h3 class="text-lg font-bold">حرب الغواصات: هيئة المحاور</h3>
-            </div>
-            <i class="fa-solid fa-ship text-2xl text-cyan-200 group-hover:scale-110 transition"></i>
-          </div>
-          <div class="p-5">
-            <p class="text-slate-600 text-sm leading-relaxed mb-4">
-              لعبة مشوقة لاصطياد الغواصات عبر تحديد الإحداثيات (X, Y) في كافة الأرباع، مع مؤثرات صوتية وتحديات الأرباع!
-            </p>
-            <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs font-semibold text-cyan-600 group-hover:text-cyan-700">
-              <span>بدء اللعبة</span>
-              <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition"></i>
-            </div>
-          </div>
-        </a>
+        .hero-pattern {
+            background-color: #4f46e5;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
 
-      </div>
+        .activity-card {
+            transition: all 0.3s ease;
+        }
+        .activity-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header / Nav -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2 text-indigo-600">
+                    <i class="fa-solid fa-infinity text-2xl"></i>
+                    <span class="font-black text-xl tracking-tight">رياضيات بلس</span>
+                </div>
+                <nav class="hidden md:flex space-x-8 space-x-reverse font-bold text-slate-600">
+                    <a href="#" class="text-indigo-600 hover:text-indigo-800 transition">الرئيسية</a>
+                    <a href="#grade-7" class="hover:text-indigo-600 transition">الصف السابع</a>
+                    <a href="#about" class="hover:text-indigo-600 transition">حول الموقع</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <div class="hero-pattern py-20 text-center px-4">
+        <h1 class="text-4xl md:text-5xl font-black text-white mb-6 drop-shadow-md">
+            أهلاً بك في منصة الرياضيات التفاعلية! 🚀
+        </h1>
+        <p class="text-indigo-100 text-lg md:text-xl font-medium max-w-2xl mx-auto drop-shadow">
+            استكشف الألعاب، أوراق العمل، والأنشطة المحوسبة التي تجعل تعلم الرياضيات متعة حقيقية وتجربة لا تُنسى.
+        </p>
     </div>
 
-  </main>
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+        
+        <!-- Section: 7th Grade -->
+        <section id="grade-7" class="mb-16">
+            <div class="flex items-center gap-3 mb-8 border-b-2 border-slate-200 pb-3">
+                <div class="bg-indigo-100 text-indigo-600 p-3 rounded-lg">
+                    <i class="fa-solid fa-graduation-cap text-2xl"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-800">أنشطة الصف السابع</h2>
+            </div>
 
-  <!-- Footer -->
-  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
-    تطبيقات الرياضيات التفاعلية &copy; 2026
-  </footer>
+            <!-- Grid of Activities -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <!-- Activity Card 1: The New Worksheet (shapaNaxis) -->
+                <a href="7Grade/shapaNaxis/" class="activity-card block bg-white rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group">
+                    <div class="h-40 bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center relative overflow-hidden">
+                        <i class="fa-solid fa-pencil-ruler text-6xl text-white opacity-80 group-hover:scale-110 transition duration-500"></i>
+                        <div class="absolute bottom-2 right-2 bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded">
+                            ورقة عمل تفاعلية
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2 group-hover:text-fuchsia-600 transition-colors">
+                            ورقة عمل: اكتشف الرسمة 🚀
+                        </h3>
+                        <p class="text-slate-600 text-sm font-medium leading-relaxed mb-4">
+                            تدرّب على تعيين النقاط في مستوى الإحداثيات (هيئة المحاور) لاكتشاف الرسمة المخفية السريّة وحل الأسئلة المتعلقة بها.
+                        </p>
+                        <span class="inline-flex items-center gap-1 text-fuchsia-600 font-bold text-sm">
+                            ابدأ الحل الآن <i class="fa-solid fa-arrow-left text-xs"></i>
+                        </span>
+                    </div>
+                </a>
+
+                <!-- Activity Card 2: Submarine Game (Example) -->
+                <a href="7Grade/submarines/" class="activity-card block bg-white rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group">
+                    <div class="h-40 bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center relative overflow-hidden">
+                        <i class="fa-solid fa-ship text-6xl text-white opacity-80 group-hover:scale-110 transition duration-500"></i>
+                        <div class="absolute bottom-2 right-2 bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded">
+                            لعبة تعليمية
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2 group-hover:text-cyan-600 transition-colors">
+                            حرب الغواصات: هيئة المحاور ⚓
+                        </h3>
+                        <p class="text-slate-600 text-sm font-medium leading-relaxed mb-4">
+                            لعبة مشوقة لتعلم الأرباع والإحداثيات. حدد مواقع الغواصات على الشبكة بدقة وأطلق الصواريخ لتدميرها جميعاً!
+                        </p>
+                        <span class="inline-flex items-center gap-1 text-cyan-600 font-bold text-sm">
+                            العب الآن <i class="fa-solid fa-arrow-left text-xs"></i>
+                        </span>
+                    </div>
+                </a>
+
+                <!-- Activity Card 3: DateAxis -->
+                <a href="7Grade/DateAxis/" class="activity-card block bg-white rounded-2xl overflow-hidden border border-slate-200 cursor-pointer group">
+                    <div class="h-40 bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center relative overflow-hidden">
+                        <i class="fa-solid fa-calendar-days text-6xl text-white opacity-80 group-hover:scale-110 transition duration-500"></i>
+                        <div class="absolute bottom-2 right-2 bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded">
+                            نشاط زمني
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2 group-hover:text-emerald-600 transition-colors">
+                            محور الزمن والتواريخ 📅
+                        </h3>
+                        <p class="text-slate-600 text-sm font-medium leading-relaxed mb-4">
+                            تعلم كيفية ترتيب وتمثيل التواريخ والأحداث الزمنية على محور الأعداد بصورة مرئية وتفاعلية.
+                        </p>
+                        <span class="inline-flex items-center gap-1 text-emerald-600 font-bold text-sm">
+                            استكشف النشاط <i class="fa-solid fa-arrow-left text-xs"></i>
+                        </span>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer id="about" class="bg-slate-900 text-slate-400 py-8 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="font-medium">© 2024 موقع الرياضيات التعليمي. تم البناء لتسهيل وتطوير عملية التعلم.</p>
+        </div>
+    </footer>
 
 </body>
 </html>
